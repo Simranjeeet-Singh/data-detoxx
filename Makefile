@@ -56,8 +56,11 @@ black:
 coverage:
 	$(call execute_in_env, $(PIP) install coverage)
 
+# Install pandas
+pandas_install:
+	$(call execute_in_env, $(PIP) install pandas)
 ## Set up dev requirements (bandit, safety, flake8)
-dev-setup: bandit safety black coverage
+dev-setup: bandit safety black coverage pandas_install
 
 # Build / Run
 
