@@ -56,16 +56,8 @@ black:
 coverage:
 	$(call execute_in_env, $(PIP) install coverage)
 
-# Install pandas
-pandas_install:
-	$(call execute_in_env, $(PIP) install pandas)
-
-# Install pyarrow
-pyarrow_install:
-	$(call execute_in_env, $(PIP) install pyarrow)
-
 ## Set up dev requirements (bandit, safety, flake8)
-dev-setup: bandit safety black coverage pandas_install pyarrow_install
+dev-setup: bandit safety black coverage
 
 # Build / Run
 
@@ -88,3 +80,6 @@ check-coverage:
 
 ## Run all checks
 run-checks: security-test run-black unit-test check-coverage
+
+## Make all
+all: requirements dev-setup run-checks
