@@ -59,8 +59,13 @@ coverage:
 # Install pandas
 pandas_install:
 	$(call execute_in_env, $(PIP) install pandas)
+
+# Install pyarrow
+pyarrow_install:
+	$(call execute_in_env, $(PIP) install pyarrow)
+
 ## Set up dev requirements (bandit, safety, flake8)
-dev-setup: bandit safety black coverage pandas_install
+dev-setup: bandit safety black coverage pandas_install pyarrow_install
 
 # Build / Run
 
