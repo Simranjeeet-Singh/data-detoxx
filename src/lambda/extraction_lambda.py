@@ -7,7 +7,10 @@ from utils.utils import *
 
 def extract_tablenames( conn: Connection) -> list[str]:
     '''
-    Given a pg8000.native Connection object to a SQL db, returns the names of all its tables in a list.
+    Parameters:
+      -conn: pg8000.native Connection object to a SQL db.
+    Returns:
+      -Names of all its tables in a list.
     '''
     sql_query_tablenames='''SELECT table_name
     FROM information_schema.tables
@@ -17,8 +20,12 @@ def extract_tablenames( conn: Connection) -> list[str]:
 
 def save_table_to_csv(conn: Connection, table_name: str) -> None:
     '''
-    Given a pg8000.native Connection object to a SQL db, and the name of one of its tables,
-    stores the rows of the table in a pandas dataframe and saves it to a .csv file of the same name.
+    Parameters:
+      -conn: pg8000.native Connection object to a SQL db;
+      -table_name: str representing the name of one of its tables.
+    Returns:
+      -None
+    This function stores rows of the given table_name in a pandas dataframe and saves it to table_name.csv.
     ''' 
     rows=conn.run(f'SELECT * FROM {identifier(table_name)};')
     cols_name=[el['name'] for el in conn.columns]
@@ -29,10 +36,14 @@ def save_table_to_csv(conn: Connection, table_name: str) -> None:
 
 def save_db_to_csv( var : None = None) -> None:
     '''
-    Connects to a server specified in the .env variable via pg8000.native
-    Extract all rows from all its SQL tables
-    Inputs them in pandas dataframes
-    Saves each dataframe to .csv files with same name as table
+    Parameters:
+    -None
+    Returns:
+    -None
+    Connects to a server specified in the .env variable via pg8000.native;
+    Extract all rows from all its SQL tables;
+    Inputs them in pandas dataframes;
+    Saves each dataframe to .csv files with same name as table;
     '''
     load_dotenv()
     conn = Connection(
