@@ -10,9 +10,9 @@ def save_db_to_csv():
     '''
     Null -> Null
     This function connects to a server specified in the .env variable via pg8000.native
-    Extract all rows from the currency SQL table
-    Inputs them in a pandas dataframe
-    Saves the dataframe to a .csv file
+    Extract all rows from all its SQL tables
+    Inputs them in pandas dataframes
+    Saves each dataframe to .csv files with same name as table
     '''
     load_dotenv()
     conn = Connection(
@@ -22,18 +22,18 @@ def save_db_to_csv():
         database=os.environ["Database_name"],
         port=os.environ["Port"],
     )
-    rows=conn.run('SELECT * FROM currency;')
-    cols_name_nested=conn.run('''SELECT COLUMN_NAME 
-FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE 
-TABLE_NAME = 'currency'
-''')
-    cols_name=[el[0] for el in cols_name_nested]
+    sql_query_tablenames='''SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema='public'
+    AND table_type='BASE TABLE';'''
+    tablenames=[el[0] for el in conn.run(sql_query_tablenames) if el[0]!='_prisma_migrations']
+    for name in tablenames:
+        rows=conn.run(f'SELECT * FROM {identifier(name)};')
+        cols_name=[el['name'] for el in conn.columns]
+        df=pd.DataFrame(rows)
+        df.index=df[0].values
+        df.columns=cols_name
+        df.to_csv(f'./csv/{name}.csv', sep=',', index=False, encoding='utf-8')
     conn.close()
-    df=pd.DataFrame(rows)
-    df.index=df[0].values
-    df.columns=cols_name
-    df.to_csv('./file.csv', sep=',', index=False, encoding='utf-8')
-
 if __name__ == "__main__":
     save_db_to_csv()
