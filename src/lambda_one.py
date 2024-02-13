@@ -43,6 +43,7 @@ def lambda_handler(event, context):
             raise InvalidFileTypeError
 
         s3 = boto3.client('s3')
+        s3.copy_object(Bucket=s3_bucket_name, Key='hello', CopySource={'Bucket': s3_bucket_name, 'Key': 'test1.txt'})
         text = get_text_from_file(s3, s3_bucket_name, s3_object_name)
         logger.info('File contents...')
         logger.info(f'{text}')
