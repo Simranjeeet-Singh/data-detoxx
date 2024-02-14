@@ -2,7 +2,7 @@
 resource "aws_cloudwatch_log_metric_filter" "syntax_error" {
   name           = "SyntaxMetricLog"
   pattern        = "SyntaxError"
-  log_group_name = "/aws/lambda/error-test"
+  log_group_name = "/aws/lambda/${aws_lambda_function.s3_file_reader.function_name}"
   metric_transformation {
     name      = "SyntaxErrorCount"
     namespace = "LogMetric"
@@ -13,7 +13,7 @@ resource "aws_cloudwatch_log_metric_filter" "syntax_error" {
 resource "aws_cloudwatch_log_metric_filter" "value_error" {
   name           = "ValueMetricLog"
   pattern        = "ValueError"
-  log_group_name = "/aws/lambda/error-test"
+  log_group_name = "/aws/lambda/${aws_lambda_function.s3_file_reader.function_name}"
   metric_transformation {
     name      = "ValueErrorCount"
     namespace = "LogMetric"
@@ -56,6 +56,6 @@ resource "aws_sns_topic" "error_alerts" {
 resource "aws_sns_topic_subscription" "email_subscription" {
   topic_arn = aws_sns_topic.error_alerts.arn
   protocol  = "email"
-  endpoint  = "cozomdlhgywtsygctc@cwmxc.com" #change to real email address
+  endpoint  = "pnzoatzrykuqkusvqg@ckptr.com" #change to real email address
 }
 
