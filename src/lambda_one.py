@@ -1,92 +1,71 @@
-"""
---DUMMY LAMBDA FOR DEPLOYMENT
----TO BE REPLACED WITH ORIGINAL FUNCTION BEFORE MERGING
-"""
-
-
-
-"""Defines lambda function to handle creation of S3 text object."""
-
 import logging
 import boto3
 from botocore.exceptions import ClientError
+import csv
+from pg8000.native import Connection
 
-logger = logging.getLogger('MyLogger')
+
+logger = logging.getLogger("MyLogger")
 logger.setLevel(logging.INFO)
+
+# CHANGE BUCKET NAME
+BUCKET_NAME = "data-detox-ingestion-bucket"
+
+
+def connect():
+    con = Connection(
+        host="nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com",
+        user="project_team_4",
+        password="0zGVeR63AcJdktyt",
+        database="totesys",
+        port="5432",
+    )
+    sql_query = f"SELECT * FROM currency;"
+    sql_results = con.run(sql_query)
+    con.close()
+    return sql_results
 
 
 def lambda_handler(event, context):
-    """Handles S3 PutObject event and logs the contents of file.
-
-    On receipt of a PutObject event, checks that the file type is txt and
-    then logs the contents.
-
-    Args:
-        event:
-            a valid S3 PutObject event -
-            see https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-content-structure.html
-        context:
-            a valid AWS lambda Python context object - see
-            https://docs.aws.amazon.com/lambda/latest/dg/python-context.html
-
-    Raises:
-        RuntimeError: An unexpected error occurred in execution. Other errors
-        result in an informative log message.
-    """  # noqa: E501
 
     try:
-        s3_bucket_name, s3_object_name = get_object_path(event['Records'])
-        logger.info(f'Bucket is {s3_bucket_name}')
-        logger.info(f'Object key is {s3_object_name}')
+        sql_results = connect()
+        logger.info(f"event = {event}")
+        logger.info(f"Sql results received {sql_results}")
 
-        if s3_object_name[-3:] != 'txt':
-            raise InvalidFileTypeError
+        save_sql_query_list_to_csv(sql_results, "/tmp/sql_results.csv")
 
-        s3 = boto3.client('s3')
-        s3.copy_object(Bucket=s3_bucket_name, Key='hello', CopySource={'Bucket': s3_bucket_name, 'Key': 'test1.txt'})
-        text = get_text_from_file(s3, s3_bucket_name, s3_object_name)
-        logger.info('File contents...')
-        logger.info(f'{text}')
-    except KeyError as k:
-        logger.error(f'Error retrieving data, {k}')
+        s3 = boto3.client("s3")
+        s3.upload_file("/tmp/sql_results.csv", BUCKET_NAME, "sql_results.csv")
+
     except ClientError as c:
-        if c.response['Error']['Code'] == 'NoSuchKey':
-            logger.error(f'No object found - {s3_object_name}')
-        elif c.response['Error']['Code'] == 'NoSuchBucket':
-            logger.error(f'No such bucket - {s3_bucket_name}')
-        else:
-            raise
-    except UnicodeError:
-        logger.error(f'File {s3_object_name} is not a valid text file')
-    except InvalidFileTypeError:
-        logger.error(f'File {s3_object_name} is not a valid text file')
+        print(c)
+        if c.response["Error"]["Code"] == "NoSuchBucket":
+            logger.error(f"No such bucket - {BUCKET_NAME}")
     except Exception as e:
         logger.error(e)
         raise RuntimeError
 
 
-def get_object_path(records):
-    """Extracts bucket and object references from Records field of event."""
-    return records[0]['s3']['bucket']['name'], \
-        records[0]['s3']['object']['key']
+def save_sql_query_list_to_csv(list_of_lists: list[list[str]], filename: str) -> None:
+    """
+    Save a list of lists to a CSV file.
+
+    Args:
+        list_of_lists (List[List[str]]): List of lists to be saved to CSV.
+        filename (str): Name of the CSV file to be saved.
+
+    Returns:
+        None
+    """
+    if not list_of_lists:
+        print("The list of lists is empty. Nothing to save.")
+        return
+
+    with open(filename, "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(list_of_lists)
 
 
-def get_text_from_file(client, bucket, object_key):
-    """Reads text from specified file in S3."""
-    data = client.get_object(Bucket=bucket, Key=object_key)
-    contents = data['Body'].read()
-    return contents.decode('utf-8')
-
-
-class InvalidFileTypeError(Exception):
-    """Traps error where file type is not txt."""
-    pass
-
-
-
-
-
-
-
-
-
+if __name__ == "__main__":
+    lambda_handler("test", "context")
