@@ -19,6 +19,31 @@ def extract_tablenames(conn: Connection) -> list[str]:
         el[0] for el in conn.run(sql_query_tablenames) if el[0] != "_prisma_migrations"
     ]
 
+def path_to_csv(table_name: str,counter: int,last_updated: datetime) -> str:
+    '''
+    Parameters:
+    -table_name: name of table in schema
+    -counter: counter for the number of times data have been downloaded
+    -last_updated: timestamp for the most recent row that has been pulled from the SQL
+    Returns:
+    -path to .csv file containing the downloaded data in format:
+    '/{table_name}/{table_name}_[#{counter}]_{last_date_converted}.csv'
+    '''
+    return f'./{table_name}/{table_name}_[#{counter}]_{last_updated}.csv'
+
+def extract_last_date(conn: Connection, table_name: str) -> datetime:
+    '''
+    Parameters:
+    -conn: pg8000.native Connection object to a SQL db.
+    -table_name: name of table in schema
+    Returns:
+    - most recent last_updated value
+    '''
+    last_date = conn.run(f'''SELECT last_updated FROM {identifier(table_name)}
+                    ORDER BY last_updated DESC
+                    LIMIT 1
+                    ;''')
+    return last_date[0][0]
 
 def save_table_to_csv(conn: Connection, table_name: str, last_date, counter: int) -> None:
     """
@@ -33,6 +58,7 @@ def save_table_to_csv(conn: Connection, table_name: str, last_date, counter: int
     Rows are ordered by the column last_updated, with the most recent date at the end.
     If there are no rows, it does nothing.
     """
+    last_date_converted=convert_to_utc(extract_last_date(conn, table_name))
     rows = conn.run(f'''SELECT * FROM {identifier(table_name)}
                     WHERE last_updated > {literal(last_date)}
                     ORDER BY last_updated ASC
@@ -42,10 +68,9 @@ def save_table_to_csv(conn: Connection, table_name: str, last_date, counter: int
       df = pd.DataFrame(rows)
       df.index = df[0].values
       df.columns = cols_name
-      last_date_converted=convert_to_utc(str(df.iloc[-1]['last_updated'])[:-3])
-      df.to_csv(f"./{table_name}/{table_name}_[#{counter}]_{last_date_converted}.csv", sep=",", index=False, encoding="utf-8")
+      df.to_csv(path_to_csv(table_name,counter,last_date_converted), sep=",", index=False, encoding="utf-8")
 
-def convert_to_utc(datetime_str: str) -> str:
+def convert_to_utc(datetime: datetime) -> str:
     """
     Convert a date-time string to a UTC format string.
 
@@ -55,8 +80,8 @@ def convert_to_utc(datetime_str: str) -> str:
     Returns:
         str: A string representing date and time in UTC format 'YYYY-MM-DDTHHMMSS.SSSZ'.
     """
-    dt_obj = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
-    utc_format_str = dt_obj.strftime('%Y-%m-%dT%H%M%S%f')[:-3] + 'Z'
+    # dt_obj = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
+    utc_format_str = datetime.strftime('%Y-%m-%dT%H%M%S%f')[:-3] + 'Z'
     return utc_format_str
 
 

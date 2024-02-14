@@ -1,4 +1,4 @@
-from src.lambda_functions.extraction_lambda import extract_tablenames, save_table_to_csv, save_db_to_csv, convert_to_utc
+from src.lambda_functions.extraction_lambda import extract_tablenames, save_table_to_csv, save_db_to_csv, convert_to_utc, path_to_csv, extract_last_date
 from unittest.mock import patch, Mock
 import datetime
 import pandas as pd
@@ -31,6 +31,22 @@ def test_extract_tablenames_many_tables():
         conn_patched.run.return_value=[['a'],['b'],['c'],['d'],['e'],['_prisma_migrations'],['f']]
         assert extract_tablenames(conn_patched)==['a','b','c','d','e','f']
 
+def test_path_to_csv():
+    '''
+    path_to_csv formats the path in the intended way
+    '''
+    assert path_to_csv('table',0,'2010')=='./table/table_[#0]_2010.csv'
+    assert path_to_csv('table2',10,'2010-10-10')=='./table2/table2_[#10]_2010-10-10.csv'
+    assert path_to_csv('table10',100000,'2010-10-T10101010100Z')=='./table10/table10_[#100000]_2010-10-T10101010100Z.csv'
+
+def test_extract_last_date():
+    '''
+    extract_last_date retrieves the only entry of a single row
+    '''
+    with patch("src.lambda_functions.extraction_lambda.Connection") as conn_patched:
+        conn_patched.run.return_value=[[datetime.datetime(2022, 11, 3, 14, 20, 52, 18600)]]
+        assert extract_last_date(conn_patched, 'table')==datetime.datetime(2022, 11, 3, 14, 20, 52, 18600)
+
 def test_save_table_empty_table():
     '''
     Check that pandas is not called if we don't get any rows from the db query
@@ -42,6 +58,8 @@ def test_save_table_empty_table():
             save_table_to_csv(conn_patched, 'table','daste','0')
             mock_df.assert_not_called()
 
+
+
 # def test_save_table_table_with_one_row():
 #     '''
 #     Check that pandas is called if we get one row from the db query
@@ -49,10 +67,10 @@ def test_save_table_empty_table():
 #     with patch("src.lambda_functions.extraction_lambda.Connection") as conn_patched:
 #         conn_patched.run.return_value=[['mock','data','nah','2024-02-13 18:19:09.733']]
 #         conn_patched.columns=[{'name':'id'},{'name':'data'},{'name':'yayornay'},{'name':'last_updated'}]
-#     with patch("src.lambda_functions.extraction_lambda.pd.DataFrame") as mock_df:
-#         mock_df.return_value = pd.DataFrame([{'id':'mock','data':'data','yayornay':'nah','last_updated': '2024-02-13 18:19:09.733'}])
-#         print(mock_df.return_value.iloc[-1]['last_updated'])
-#         assert False
+#         with patch("src.lambda_functions.extraction_lambda.pd.DataFrame") as mock_df:
+#             mock_df.return_value = pd.DataFrame([{'id':'mock','data':'data','yayornay':'nah','last_updated': '2024-02-13 18:19:09.733'}])
+#             print(mock_df.return_value.iloc[-1]['last_updated'])
+#             assert False
 #         # save_table_to_csv(conn_patched, 'table','data','2024-02-13 18:19:09.700')
 #         # mock_df.assert_called_once_with([['mock','data','nah','2024-02-13 18:19:09.733']])
 
