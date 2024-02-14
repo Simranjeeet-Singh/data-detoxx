@@ -1,6 +1,7 @@
 from pg8000.native import Connection, identifier, literal
 import pandas as pd
 from dotenv import load_dotenv
+from datetime import date
 import os
 
 def extract_tablenames(conn: Connection) -> list[str]:
@@ -19,7 +20,7 @@ def extract_tablenames(conn: Connection) -> list[str]:
     ]
 
 
-def save_table_to_csv(conn: Connection, table_name: str) -> None:
+def save_table_to_csv(conn: Connection, table_name: str, last_date: date) -> None:
     """
     Parameters:
       -conn: pg8000.native Connection object to a SQL db;
@@ -31,7 +32,9 @@ def save_table_to_csv(conn: Connection, table_name: str) -> None:
     If there are no rows, it does nothing.
     """
     rows = conn.run(f'''SELECT * FROM {identifier(table_name)}
-                    ORDER BY last_updated ASC;''')
+                    ORDER BY last_updated ASC
+                    WHERE last_updated>{literal(last_date)}
+                    ;''')
     if rows:
       cols_name = [el["name"] for el in conn.columns]
       df = pd.DataFrame(rows)
