@@ -1,4 +1,3 @@
-import pprint
 from pg8000.native import Connection, identifier, literal
 import pandas as pd
 from dotenv import load_dotenv
@@ -28,16 +27,20 @@ def save_table_to_csv(conn: Connection, table_name: str) -> None:
     Returns:
       -None
     This function stores rows of the given table_name in a pandas dataframe and saves it to table_name.csv.
+    Rows are ordered by the column last_updated, with the most recent date at the end.
     If there are no rows, it does nothing.
     """
-    rows = conn.run(f"SELECT * FROM {identifier(table_name)};")
+    rows = conn.run(f'''SELECT * FROM {identifier(table_name)}
+                    ORDER BY last_updated ASC;''')
     if rows:
       cols_name = [el["name"] for el in conn.columns]
       df = pd.DataFrame(rows)
       df.index = df[0].values
       df.columns = cols_name
-      df.to_csv(f"./csv/{table_name}.csv", sep=",", index=False, encoding="utf-8")
+      df.to_csv(f"./csv/{table_name}/tbd.csv", sep=",", index=False, encoding="utf-8")
 
+# def last_date_in_csv():
+    
 
 def save_db_to_csv() -> None:
     """
@@ -65,6 +68,5 @@ def save_db_to_csv() -> None:
 
 
 if __name__ == "__main__":
-    save_table_to_csv('col','asd')
     save_db_to_csv()
     
