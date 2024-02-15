@@ -1,72 +1,37 @@
-import pprint
-from pg8000.native import Connection, identifier, literal
-from dotenv import load_dotenv
-import os
+from lambda_functions.utils.date_utils import convert_from_utc
 
 
-def return_safe_sql_identifiers_str_from_list(list_of_identifiers: list) -> str:
-    safe_identifiers_str = ""
-    for index, value in enumerate(list_of_identifiers):
-        if index == len(list_of_identifiers) - 1:
-            str_to_add = identifier(value)
-        else:
-            str_to_add = f"{identifier(value)}, "
-        safe_identifiers_str = safe_identifiers_str + str_to_add
-    return safe_identifiers_str
+def return_latest_counter_and_timestamp_from_filenames(
+    target_table_name: str, filenames: list[str]
+) -> tuple[int, str]:
+    """
+    Extracts the latest counter and corresponding timestamp from a list of filenames for a specific table.
+
+    Args:
+        target_table_name (str): The name of the target table.
+        filenames (list[str]): A list of filenames.
+
+    Returns:
+        Tuple (largest_counter: int, sql_datetime: str):
+        A tuple containing the largest counter and its corresponding timestamp in the following format 'YYYY-MM-DD HH:MM:SS.SSS'.
+    """
+    counter_timestamp_dict = {}
+
+    # Extract counter and timestamp from filenames into dict
+    for filename in filenames:
+        table_name, counter, datetime = filename.split("_")
+        counter = int(counter.strip("[]").replace("#", ""))
+        if table_name == target_table_name:
+            if counter in counter_timestamp_dict:
+                raise ValueError("Duplicate counter values exist in filenames")
+            else:
+                counter_timestamp_dict[counter] = datetime
+
+    largest_counter = max(counter_timestamp_dict.keys())
+    sql_datetime = convert_from_utc(counter_timestamp_dict[largest_counter])
+    return (largest_counter, sql_datetime)
 
 
-def return_list_of_dicts_from_sql_results(results_list: list, keys: list) -> dict:
-    list_of_dicts = []
-    for values in results_list:
-        result_dict = dict(zip(keys, values))
-        list_of_dicts.append(result_dict)
-    return list_of_dicts
-
-
-def select_movies(sort_by="title", order="ASC", min_rating=None, location=None) -> list:
-
-    load_dotenv()
-    con = Connection(
-        user=os.environ["USER"], password=os.environ["PASSWORD"], database="nc_flix"
-    )
-
-    columns_to_select = [
-        "movie_id",
-        "title",
-        "release_date",
-        "rating",
-        "classification",
-        "cost",
-        "city",
-    ]
-
-    columns_to_select_sql_str = return_safe_sql_identifiers_str_from_list(
-        columns_to_select
-    )
-
-    order = order.upper()
-    if order not in ["ASC", "DESC"]:
-        order = "ASC"
-
-    sql_query = f"SELECT movies.*, city FROM movies "
-    if location:
-        sql_query += f"JOIN stock ON movies.movie_id = stock.movie_id JOIN stores ON stock.store_id = stores.store_id WHERE city = {literal(location)} "
-    if min_rating:
-        if location:
-            sql_query += "AND "
-        sql_query += f"WHERE rating > {literal(min_rating)} "
-    sql_query += f"ORDER BY movies.{identifier(sort_by)} {order}"
-
-    print(sql_query)
-
-    sql_results = con.run(sql_query)
-
-    con.close()
-
-    list_of_movie_dicts = return_list_of_dicts_from_sql_results(
-        sql_results, columns_to_select
-    )
-
-    pprint(list_of_movie_dicts)
-
-    return list_of_movie_dicts
+if __name__ == "__main__":
+    filenames = ["mytable_[#1]_2009-08-08T121800Z", "mytable_[#2]_2009-08-08T1218020Z"]
+    print(return_latest_counter_and_timestamp_from_filenames("mytable", filenames))
