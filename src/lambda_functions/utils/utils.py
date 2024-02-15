@@ -23,7 +23,7 @@ def return_latest_counter_and_timestamp_from_filenames(
 
     # Extract counter and timestamp from filenames into dict
     for filename in filenames:
-        table_name, counter, datetime = filename.split("_")
+        table_name, counter, datetime = filename.split("__")
         counter = int(counter.strip("[]").replace("#", ""))
         if table_name == target_table_name:
             if counter in counter_timestamp_dict:
@@ -32,7 +32,7 @@ def return_latest_counter_and_timestamp_from_filenames(
                 counter_timestamp_dict[counter] = datetime
 
     largest_counter = max(counter_timestamp_dict.keys())
-    sql_datetime = convert_utc_to_sql_timestamp(counter_timestamp_dict[largest_counter])
+    sql_datetime = convert_utc_to_sql_timestamp(counter_timestamp_dict[largest_counter].strip(".csv"))
     return (largest_counter, sql_datetime)
 
 

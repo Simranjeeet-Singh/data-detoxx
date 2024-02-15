@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import os
 
 # CHANGE BUCKET NAME
-BUCKET_NAME = "stupid-bucket555"
+BUCKET_NAME = "mycsvbucket-nc"
 
 
 def connect():
@@ -32,8 +32,13 @@ def lambda_handler(event, context):
         connection.close()
         s3 = boto3.client("s3")
         for path in csv_paths:
-            s3.upload_file(Filename=path, Bucket=BUCKET_NAME, Key=path)
+            try:
+                s3.upload_file(Filename=path, Bucket=BUCKET_NAME, Key=path)
+            except FileNotFoundError:
+                tab_name=path.split('__')[0]
+                logger.info(f'No rows added or modified to table {tab_name}')
 
+    
     except ClientError as c:
         print(c)
         if c.response["Error"]["Code"] == "NoSuchBucket":

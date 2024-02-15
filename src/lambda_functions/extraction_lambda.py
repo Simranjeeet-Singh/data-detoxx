@@ -37,7 +37,7 @@ def path_to_csv(table_name: str, counter: int, last_updated: datetime) -> str:
     - path to .csv file containing the downloaded data in format:
     '{table_name}_[#{counter}]_{last_date_converted}.csv'
     """
-    return f"{table_name}_[#{counter}]_{last_updated}.csv"
+    return f"{table_name}__[#{counter}]__{last_updated}.csv"
 
 
 def extract_last_updated_from_table(conn: Connection, table_name: str) -> datetime:
