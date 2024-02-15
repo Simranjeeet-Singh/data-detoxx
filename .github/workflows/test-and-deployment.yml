@@ -1,0 +1,77 @@
+name: CI/CD Test
+on:
+  push:
+
+jobs:
+  hello-world:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say the thing...
+        run: echo "Hello World!"
+
+  run-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+    
+  run-tests:
+    runs-on: ubuntu-latest
+    needs: run-checks
+    steps:  
+      - name: Checkout Repo
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      # - name: Run tests
+      #   run: make unit-test
+
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: run-tests
+    steps:
+
+      - name: Checkout Repo    
+        uses: actions/checkout@v4
+
+      - name: setup AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: eu-west-2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        
+      - name: Setup RDS CLI
+        run:
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> $GITHUB_ENV
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> $GITHUB_ENV
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+      
+      - name: Terraform init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply - 
+
+    
+
+
+
+
