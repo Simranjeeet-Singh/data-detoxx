@@ -3,6 +3,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime
 import os
+from lambda_functions.utils.date_utils import convert_datetime_to_utc
 from utils.utils import return_latest_counter_and_timestamp_from_filenames
 
 
@@ -34,7 +35,7 @@ def path_to_csv(table_name: str, counter: int, last_updated: datetime) -> str:
     - path to .csv file containing the downloaded data in format:
     '/{table_name}/{table_name}_[#{counter}]_{last_date_converted}.csv'
     """
-    return f"./{table_name}/{table_name}_[#{counter}]_{last_updated}.csv"
+    return f"{table_name}_[#{counter}]_{last_updated}.csv"
 
 
 def extract_last_updated_from_table(conn: Connection, table_name: str) -> datetime:
@@ -86,21 +87,24 @@ def save_db_to_csv() -> None:
     )
     tablenames = extract_tablenames(conn)
     for table_name in tablenames:
-        last_updated_from_database_utc_timestamp = convert_to_utc(
+        last_updated_from_database_utc_timestamp = convert_datetime_to_utc(
             extract_last_updated_from_table(conn, table_name)
         )
-        # last_updated_from_ingestion_bucket_sql_timestamp = return_latest_counter_and_timestamp_from_filenames()
-        last_updated_from_ingestion_bucket_sql_timestamp = "2022-11-03 14:20:49.962"
+        # counter, last_updated_from_ingestion_bucket_sql_timestamp = return_latest_counter_and_timestamp_from_filenames()
+        # Dummy timestamp remove later
+        last_updated_from_ingestion_bucket_sql_timestamp = "2010-11-03 14:20:49.962"
+        counter = 1
+
         rows = conn.run(
             f"""SELECT * FROM {identifier(table_name)}
-                    WHERE last_updated > {literal(last_date_from_other_function)}
+                    WHERE last_updated > {literal(last_updated_from_ingestion_bucket_sql_timestamp)}
                     ORDER BY last_updated ASC
                     ;"""
         )
         cols_name = [el["name"] for el in conn.columns]
         path = path_to_csv(
             table_name,
-            counter_from_other_function,
+            counter,
             last_updated_from_database_utc_timestamp,
         )
         save_table_to_csv(cols_name, rows, path)
