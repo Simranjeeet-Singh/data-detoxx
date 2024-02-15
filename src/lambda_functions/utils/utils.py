@@ -1,4 +1,4 @@
-from lambda_functions.utils.date_utils import convert_from_utc
+from lambda_functions.utils.date_utils import convert_utc_to_sql_timestamp
 
 
 def return_latest_counter_and_timestamp_from_filenames(
@@ -28,7 +28,7 @@ def return_latest_counter_and_timestamp_from_filenames(
                 counter_timestamp_dict[counter] = datetime
 
     largest_counter = max(counter_timestamp_dict.keys())
-    sql_datetime = convert_from_utc(counter_timestamp_dict[largest_counter])
+    sql_datetime = convert_utc_to_sql_timestamp(counter_timestamp_dict[largest_counter])
     return (largest_counter, sql_datetime)
 
 
