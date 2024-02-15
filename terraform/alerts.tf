@@ -1,5 +1,5 @@
-
 resource "aws_cloudwatch_log_metric_filter" "syntax_error" {
+  depends_on = [ aws_cloudwatch_log_group.cw_log_group ]
   name           = "SyntaxMetricLog"
   pattern        = "SyntaxError"
   log_group_name = "/aws/lambda/${aws_lambda_function.s3_file_reader.function_name}"
@@ -11,6 +11,7 @@ resource "aws_cloudwatch_log_metric_filter" "syntax_error" {
 }
 
 resource "aws_cloudwatch_log_metric_filter" "value_error" {
+  depends_on = [ aws_cloudwatch_log_group.cw_log_group ]
   name           = "ValueMetricLog"
   pattern        = "ValueError"
   log_group_name = "/aws/lambda/${aws_lambda_function.s3_file_reader.function_name}"
