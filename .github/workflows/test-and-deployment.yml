@@ -4,10 +4,10 @@ on:
 
 jobs:
   hello-world:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Say the thing...
-      run: echo "Hello World!"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say the thing...
+        run: echo "Hello World!"
 
   run-checks:
     runs-on: ubuntu-latest
