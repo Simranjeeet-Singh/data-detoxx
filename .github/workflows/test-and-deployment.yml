@@ -47,7 +47,7 @@ jobs:
         
       - name: setup RDS CLI
         id: get_db_cred
-        run: 
+        run: |
           db-username: ${{ secrets.DB_USERNAME }}
           db-password: ${{ secrets.DB_PASSWORD }}
           db-port: ${{ secrets.DB_PORT }}
