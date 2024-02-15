@@ -60,15 +60,15 @@ jobs:
       
       - name: Terraform init
         working-directory: terraform
-        uses: terraform init
+        run: terraform init
 
       - name: Terraform Plan
         working-directory: terraform
-        uses: terraform plan
+        run: terraform plan
 
       - name: Terraform Apply
         working-directory: terraform
-        uses: terraform apply - 
+        run: terraform apply - 
 
     
 
