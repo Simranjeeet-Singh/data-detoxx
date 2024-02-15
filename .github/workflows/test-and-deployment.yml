@@ -34,7 +34,7 @@ jobs:
     needs: run-tests
     steps:
       - name: Checkout Repo
-          uses: actions/setup-python@v5
+        uses: actions/setup-python@v5
 
       - name: setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v4
