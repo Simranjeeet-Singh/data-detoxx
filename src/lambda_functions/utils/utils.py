@@ -1,4 +1,5 @@
 from lambda_functions.utils.date_utils import convert_utc_to_sql_timestamp
+import boto3
 
 
 def return_latest_counter_and_timestamp_from_filenames(
@@ -30,6 +31,18 @@ def return_latest_counter_and_timestamp_from_filenames(
     largest_counter = max(counter_timestamp_dict.keys())
     sql_datetime = convert_utc_to_sql_timestamp(counter_timestamp_dict[largest_counter])
     return (largest_counter, sql_datetime)
+
+
+def list_files_from_s3(bucket_name: str) -> list[str]:
+    """
+    Args : bucket_name as a `string` \n
+    Returns : list of file names inside the bucket as `list` of `strings`
+    """
+    client = boto3.client("s3")
+    response = client.list_objects(Bucket=bucket_name)
+    if "Contents" not in response:
+        return []
+    return [item["Key"] for item in response["Contents"]]
 
 
 if __name__ == "__main__":
