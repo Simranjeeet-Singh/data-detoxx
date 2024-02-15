@@ -45,7 +45,7 @@ jobs:
           # aws-access-key-id: AKIA3FLD23J2HY6NDHHB
           # aws-secret-access-key: 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
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key-id: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
 
      
 
