@@ -160,5 +160,13 @@ cython_debug/
 #.idea/
 
 # csv files
-csv/
 *.csv
+# Terraform
+**/.terraform/*
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+
+# Misc.
+.DS_Store
+>>>>>>> main
