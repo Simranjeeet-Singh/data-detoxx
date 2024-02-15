@@ -46,13 +46,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         
       - name: setup RDS CLI
+        uses: 
         with:
           db-port: ${{ secrets.DB_PORT}}
           db-username: ${{ secrets.DB_USERNAME}}
           db-password: ${{ secrets.DB_PASSWORD}}
       
 
-     
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        
+          db-port: ${{ secrets.DB_PORT}}
+          db-username: ${{ secrets.DB_USERNAME}}
+          db-password: ${{ secrets.DB_PASSWORD}}     
 
 
 
