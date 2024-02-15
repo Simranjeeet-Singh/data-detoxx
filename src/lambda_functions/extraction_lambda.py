@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 import os
 from lambda_functions.utils.date_utils import convert_datetime_to_utc
+from lambda_functions.utils.utils import return_latest_counter_and_timestamp_from_filenames
 
 
 def extract_tablenames(conn: Connection) -> list[str]:
@@ -33,7 +34,7 @@ def path_to_csv(table_name: str, counter: int, last_updated: datetime) -> str:
     - path to .csv file containing the downloaded data in format:
     '{table_name}_[#{counter}]_{last_date_converted}.csv'
     """
-    return f"{table_name}_[#{counter}]_{last_updated}.csv"
+    return f"{table_name}/{table_name}_[#{counter}]_{last_updated}.csv"
 
 
 def extract_last_updated_from_table(conn: Connection, table_name: str) -> datetime:
@@ -84,10 +85,11 @@ def save_db_to_csv(conn: Connection,logger) -> list:
         last_updated_from_database_utc_timestamp = convert_datetime_to_utc(
             extract_last_updated_from_table(conn, table_name)
         )
-        # counter, last_updated_from_ingestion_bucket_sql_timestamp = return_latest_counter_and_timestamp_from_filenames()
+        filenames = 
+        counter, last_updated_from_ingestion_bucket_sql_timestamp = return_latest_counter_and_timestamp_from_filenames(table_name, filenames)
         # Dummy timestamp remove later
-        last_updated_from_ingestion_bucket_sql_timestamp = "2010-11-03 14:20:49.962"
-        counter = 1
+        #last_updated_from_ingestion_bucket_sql_timestamp = "2010-11-03 14:20:49.962"
+        #counter = 1
         if counter==0:
             rows = conn.run(
             f"""SELECT * FROM {identifier(table_name)}

@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import os
 
 # CHANGE BUCKET NAME
-BUCKET_NAME = 'mycsvbucket-nc'
+BUCKET_NAME = "mycsvbucket-nc"
 
 
 def connect():
@@ -28,7 +28,7 @@ def lambda_handler(event, context):
     logger.setLevel(logging.INFO)
     try:
         connection = connect()
-        csv_paths=save_db_to_csv(connection,logger)
+        csv_paths = save_db_to_csv(connection, logger)
         connection.close()
         s3 = boto3.client("s3")
         for path in csv_paths:
@@ -41,6 +41,7 @@ def lambda_handler(event, context):
     except Exception as e:
         logger.error(e)
         raise RuntimeError
+
 
 if __name__ == "__main__":
     lambda_handler("test", "context")

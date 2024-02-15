@@ -17,6 +17,9 @@ def return_latest_counter_and_timestamp_from_filenames(
     """
     counter_timestamp_dict = {}
 
+    if not filenames:
+        return 0, None
+
     # Extract counter and timestamp from filenames into dict
     for filename in filenames:
         table_name, counter, datetime = filename.split("_")
@@ -35,3 +38,4 @@ def return_latest_counter_and_timestamp_from_filenames(
 if __name__ == "__main__":
     filenames = ["mytable_[#1]_2009-08-08T121800Z", "mytable_[#2]_2009-08-08T1218020Z"]
     print(return_latest_counter_and_timestamp_from_filenames("mytable", filenames))
+    print(return_latest_counter_and_timestamp_from_filenames("mytable", []))
