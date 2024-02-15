@@ -41,8 +41,8 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: eu-west-2
-          aws-access-key-id: ${{ secrets.AWS.ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS.SECRET.ACCESS_KEY_ID }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET.ACCESS_KEY_ID }}
 
      
 
