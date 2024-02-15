@@ -54,7 +54,7 @@ def extract_last_updated_from_table(conn: Connection, table_name: str) -> dateti
     return last_timestamp[0][0]
 
 
-def save_table_to_csv(cols_name: list, rows: list[list], path: str,logger) -> None:
+def save_table_to_csv(cols_name: list, rows: list[list], path: str, logger) -> None:
     if rows:
         df = pd.DataFrame(rows)
         df.index = df[0].values
@@ -63,13 +63,13 @@ def save_table_to_csv(cols_name: list, rows: list[list], path: str,logger) -> No
         logger.info(f'Wrote {len(rows)} to file {path}')
 
 
-def save_db_to_csv(conn: Connection,logger) -> set:
+def save_db_to_csv(conn: Connection,logger) -> list:
     """
     Parameters:
     - conn: pg8000 connection to SQL db
 
     Returns:
-    - Set of the paths of the newly written .csv files 
+    - List of the paths of the newly written .csv files 
 
     Connects to a server specified in the .env variable via pg8000.native;
     Extract all rows from all its SQL tables;
@@ -79,7 +79,7 @@ def save_db_to_csv(conn: Connection,logger) -> set:
     """
 
     tablenames = extract_tablenames(conn)
-    new_csv_paths=set()
+    new_csv_paths=[]
     for table_name in tablenames:
         last_updated_from_database_utc_timestamp = convert_datetime_to_utc(
             extract_last_updated_from_table(conn, table_name)
@@ -106,7 +106,7 @@ def save_db_to_csv(conn: Connection,logger) -> set:
             counter,
             last_updated_from_database_utc_timestamp,
         )
-        new_csv_paths.add(path)
+        new_csv_paths.append(path)
         save_table_to_csv(cols_name, rows, path,logger)
     return new_csv_paths
 

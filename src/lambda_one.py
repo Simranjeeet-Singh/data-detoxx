@@ -32,7 +32,7 @@ def lambda_handler(event, context):
         connection.close()
         s3 = boto3.client("s3")
         for path in csv_paths:
-            s3.upload_file(path, BUCKET_NAME,path)
+            s3.upload_file(Filename=path, Bucket=BUCKET_NAME, Key=path)
 
     except ClientError as c:
         print(c)
