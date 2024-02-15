@@ -3,40 +3,36 @@ import boto3
 from botocore.exceptions import ClientError
 import csv
 from pg8000.native import Connection
-
-
-logger = logging.getLogger("MyLogger")
-logger.setLevel(logging.INFO)
+from lambda_functions.extraction_lambda import save_db_to_csv
+from dotenv import load_dotenv
+import os
 
 # CHANGE BUCKET NAME
-BUCKET_NAME = "data-detox-ingestion-bucket"
+BUCKET_NAME = 'mycsvbucket-nc'
 
 
 def connect():
-    con = Connection(
-        host="nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com",
-        user="project_team_4",
-        password="0zGVeR63AcJdktyt",
-        database="totesys",
-        port="5432",
+    load_dotenv()
+    conn = Connection(
+        host=os.environ["Hostname"],
+        user=os.environ["Username"],
+        password=os.environ["Password"],
+        database=os.environ["Database_name"],
+        port=os.environ["Port"],
     )
-    sql_query = f"SELECT * FROM currency;"
-    sql_results = con.run(sql_query)
-    con.close()
-    return sql_results
+    return conn
 
 
 def lambda_handler(event, context):
-
+    logger = logging.getLogger("MyLogger")
+    logger.setLevel(logging.INFO)
     try:
-        sql_results = connect()
-        logger.info(f"event = {event}")
-        logger.info(f"Sql results received {sql_results}")
-
-        save_sql_query_list_to_csv(sql_results, "/tmp/sql_results.csv")
-
+        connection = connect()
+        csv_paths=save_db_to_csv(connection,logger)
+        connection.close()
         s3 = boto3.client("s3")
-        s3.upload_file("/tmp/sql_results.csv", BUCKET_NAME, "sql_results.csv")
+        for path in csv_paths:
+            s3.upload_file(path, BUCKET_NAME,path)
 
     except ClientError as c:
         print(c)
@@ -45,27 +41,6 @@ def lambda_handler(event, context):
     except Exception as e:
         logger.error(e)
         raise RuntimeError
-
-
-def save_sql_query_list_to_csv(list_of_lists: list[list[str]], filename: str) -> None:
-    """
-    Save a list of lists to a CSV file.
-
-    Args:
-        list_of_lists (List[List[str]]): List of lists to be saved to CSV.
-        filename (str): Name of the CSV file to be saved.
-
-    Returns:
-        None
-    """
-    if not list_of_lists:
-        print("The list of lists is empty. Nothing to save.")
-        return
-
-    with open(filename, "w", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(list_of_lists)
-
 
 if __name__ == "__main__":
     lambda_handler("test", "context")
