@@ -34,18 +34,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: run-tests
     steps:
-      - name: Checkout Repo
-        uses: actions/setup-python@v5
 
       - name: setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: eu-west-2
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET.ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
 
      
-
+#ssssssss
 
 
 
