@@ -1,10 +1,12 @@
 from pg8000.native import Connection, identifier, literal
 import pandas as pd
-from dotenv import load_dotenv
 from datetime import datetime
 import os
 from lambda_functions.utils.date_utils import convert_datetime_to_utc
-from utils.utils import return_latest_counter_and_timestamp_from_filenames
+from lambda_functions.utils.utils import (
+    list_files_from_s3,
+    return_latest_counter_and_timestamp_from_filenames,
+)
 
 
 def extract_tablenames(conn: Connection) -> list[str]:
@@ -33,9 +35,9 @@ def path_to_csv(table_name: str, counter: int, last_updated: datetime) -> str:
 
     Returns:
     - path to .csv file containing the downloaded data in format:
-    '/{table_name}/{table_name}_[#{counter}]_{last_date_converted}.csv'
+    '{table_name}_[#{counter}]_{last_date_converted}.csv'
     """
-    return f"{table_name}_[#{counter}]_{last_updated}.csv"
+    return f"{table_name}__[#{counter}]__{last_updated}.csv"
 
 
 def extract_last_updated_from_table(conn: Connection, table_name: str) -> datetime:
@@ -56,59 +58,65 @@ def extract_last_updated_from_table(conn: Connection, table_name: str) -> dateti
     return last_timestamp[0][0]
 
 
-def save_table_to_csv(cols_name: list, rows: list[list], path: str) -> None:
+def save_table_to_csv(cols_name: list, rows: list[list], path: str, logger) -> None:
     if rows:
         df = pd.DataFrame(rows)
         df.index = df[0].values
         df.columns = cols_name
         df.to_csv(path, sep=",", index=False, encoding="utf-8")
+        logger.info(f"Wrote {len(rows)} to file {path}")
 
 
-def save_db_to_csv() -> None:
+def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
     """
     Parameters:
-    - None
+    - conn: pg8000 connection to SQL db
 
     Returns:
-    - None
+    - List of the paths of the newly written .csv files
 
     Connects to a server specified in the .env variable via pg8000.native;
     Extract all rows from all its SQL tables;
     Inputs them in pandas dataframes;
     Saves each dataframe to .csv files with same name as table;
+    returns the paths of these .csv files.
     """
-    load_dotenv()
-    conn = Connection(
-        host=os.environ["Hostname"],
-        user=os.environ["Username"],
-        password=os.environ["Password"],
-        database=os.environ["Database_name"],
-        port=os.environ["Port"],
-    )
+
     tablenames = extract_tablenames(conn)
+    new_csv_paths = []
+    filenames = list_files_from_s3(bucket_name)
     for table_name in tablenames:
         last_updated_from_database_utc_timestamp = convert_datetime_to_utc(
             extract_last_updated_from_table(conn, table_name)
         )
-        # counter, last_updated_from_ingestion_bucket_sql_timestamp = return_latest_counter_and_timestamp_from_filenames()
+        counter, last_updated_from_ingestion_bucket_sql_timestamp = (
+            return_latest_counter_and_timestamp_from_filenames(table_name, filenames)
+        )
         # Dummy timestamp remove later
-        last_updated_from_ingestion_bucket_sql_timestamp = "2010-11-03 14:20:49.962"
-        counter = 1
-
-        rows = conn.run(
-            f"""SELECT * FROM {identifier(table_name)}
+        # last_updated_from_ingestion_bucket_sql_timestamp = "2010-11-03 14:20:49.962"
+        # counter = 1
+        if counter == 0:
+            rows = conn.run(
+                f"""SELECT * FROM {identifier(table_name)}
+                    ORDER BY last_updated ASC
+                    ;"""
+            )
+        else:
+            rows = conn.run(
+                f"""SELECT * FROM {identifier(table_name)}
                     WHERE last_updated > {literal(last_updated_from_ingestion_bucket_sql_timestamp)}
                     ORDER BY last_updated ASC
                     ;"""
-        )
+            )
         cols_name = [el["name"] for el in conn.columns]
         path = path_to_csv(
             table_name,
-            counter,
+            counter + 1,
             last_updated_from_database_utc_timestamp,
         )
-        save_table_to_csv(cols_name, rows, path)
-    conn.close()
+        new_csv_paths.append(path)
+        save_table_to_csv(cols_name, rows, path, logger)
+    return new_csv_paths
 
 
 if __name__ == "__main__":
