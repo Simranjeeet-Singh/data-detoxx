@@ -33,7 +33,7 @@ def path_to_csv(table_name: str,counter: int,last_updated: datetime) -> str:
     '''
     return f'./{table_name}/{table_name}_[#{counter}]_{last_updated}.csv'
 
-def extract_last_timestamp(conn: Connection, table_name: str) -> datetime:
+def extract_last_timestamp_from_table(conn: Connection, table_name: str) -> datetime:
     '''
     Parameters:
     - conn: pg8000.native Connection object to a SQL db.
@@ -48,31 +48,7 @@ def extract_last_timestamp(conn: Connection, table_name: str) -> datetime:
                     ;''')
     return last_timestamp[0][0]
 
-
-def save_table_to_csv(conn: Connection, table_name: str, last_date, counter: int) -> None:
-    """
-    Parameters:
-    - conn: pg8000.native Connection object to a SQL db;
-    - table_name: str representing the name of one of its tables.
-    - last_date: timestamp representing the latest date that has been written to a .csv file
-    - counter: the current iteration of the program
-    Returns:
-    - None
-
-    This function stores rows of the given table_name in a pandas dataframe and saves it to table_name.csv.
-    Rows are ordered by the column last_updated, with the most recent date at the end.
-    If there are no rows, it does nothing.
-    """
-    last_date_converted=convert_to_utc(extract_last_timestamp(conn, table_name))
-    rows = conn.run(f'''SELECT * FROM {identifier(table_name)}
-                    WHERE last_updated > {literal(last_date)}
-                    ORDER BY last_updated ASC
-                    ;''')
-    cols_name = [el["name"] for el in conn.columns]
-    path=path_to_csv(table_name,counter,last_date_converted)
-    save_rows_to_csv(cols_name, rows, path)
-
-def save_rows_to_csv(cols_name: list, rows: list[list], path: str) -> None:
+def save_table_to_csv(cols_name: list, rows: list[list], path: str) -> None:
     if rows:
         df = pd.DataFrame(rows)
         df.index = df[0].values
@@ -117,7 +93,14 @@ def save_db_to_csv() -> None:
     )
     tablenames = extract_tablenames(conn)
     for table_name in tablenames:
-        save_table_to_csv(conn, table_name,'2024-02-13 18:19:09.733',0)
+        last_updated_from_database_converted=convert_to_utc(extract_last_timestamp_from_table(conn, table_name))
+        rows = conn.run(f'''SELECT * FROM {identifier(table_name)}
+                    WHERE last_updated > {literal(last_date_from_other_function)}
+                    ORDER BY last_updated ASC
+                    ;''')
+        cols_name = [el["name"] for el in conn.columns]
+        path=path_to_csv(table_name,counter_from_other_function,last_updated_from_database_converted)
+        save_table_to_csv(cols_name, rows, path)
     conn.close()
 
 

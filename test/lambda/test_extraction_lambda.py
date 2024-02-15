@@ -1,8 +1,8 @@
-from src.lambda_functions.extraction_lambda import extract_tablenames, save_table_to_csv, save_db_to_csv, convert_to_utc, path_to_csv, extract_last_timestamp, save_rows_to_csv
+from src.lambda_functions.extraction_lambda import extract_tablenames, save_table_to_csv, save_db_to_csv, convert_to_utc, path_to_csv, extract_last_timestamp_from_table, save_rows_to_csv
 from unittest.mock import patch, Mock
 import datetime
 import pandas as pd
-
+#Some of these tests are now broken, due to change in main functions. Don't run them yet
 def test_import_works():
     assert True
 
@@ -45,7 +45,7 @@ def test_extract_last_timestamp():
     '''
     with patch("src.lambda_functions.extraction_lambda.Connection") as conn_patched:
         conn_patched.run.return_value=[[datetime.datetime(2022, 11, 3, 14, 20, 52, 18600)]]
-        assert extract_last_timestamp(conn_patched, 'table')==datetime.datetime(2022, 11, 3, 14, 20, 52, 18600)
+        assert extract_last_timestamp_from_table(conn_patched, 'table')==datetime.datetime(2022, 11, 3, 14, 20, 52, 18600)
 
 def test_save_table_to_csv_one_row():
     '''
