@@ -92,9 +92,6 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
         counter, last_updated_from_ingestion_bucket_sql_timestamp = (
             return_latest_counter_and_timestamp_from_filenames(table_name, filenames)
         )
-        # Dummy timestamp remove later
-        # last_updated_from_ingestion_bucket_sql_timestamp = "2010-11-03 14:20:49.962"
-        # counter = 1
         if counter == 0:
             rows = conn.run(
                 f"""SELECT * FROM {identifier(table_name)}
@@ -114,6 +111,7 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
             counter + 1,
             last_updated_from_database_utc_timestamp,
         )
+        path='tmp/'+path
         new_csv_paths.append(path)
         save_table_to_csv(cols_name, rows, path, logger)
     return new_csv_paths
