@@ -35,6 +35,9 @@ jobs:
     needs: run-tests
     steps:
 
+      - name: Checkout Repo    
+        uses: actions/checkout@v4
+
       - name: setup AWS CLI
         uses: aws-actions/configure-aws-credentials@v4
         with:
