@@ -6,6 +6,6 @@ resource "aws_lambda_function" "s3_file_reader" {
   handler       = "lambda_one.lambda_handler"
   runtime = "python3.9"
   timeout = 600
-  layers = [aws_lambda_layer_version.lambda_one_dependencies.arn,"arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python311:2"]
+  layers = [aws_lambda_layer_version.lambda_one_dependencies.arn]
 }
 
