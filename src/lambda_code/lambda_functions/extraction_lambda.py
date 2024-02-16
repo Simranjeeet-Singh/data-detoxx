@@ -64,7 +64,7 @@ def save_table_to_csv(cols_name: list, rows: list[list], path: str, logger) -> N
         df = pd.DataFrame(rows)
         df.index = df[0].values
         df.columns = cols_name
-        df.to_csv(f'tmp/{path}', sep=",", index=False, encoding="utf-8")
+        df.to_csv(f"/tmp/{path}", sep=",", index=False, encoding="utf-8")
         logger.info(f"Wrote {len(rows)} to file {path}")
 
 
@@ -112,7 +112,7 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
             counter + 1,
             last_updated_from_database_utc_timestamp,
         )
-        folder_name=Path(f'tmp/{table_name}').mkdir(parents=True, exist_ok=True)
+        folder_name = Path(f"/tmp/{table_name}").mkdir(parents=True, exist_ok=True)
         new_csv_paths.append(path)
         save_table_to_csv(cols_name, rows, path, logger)
     return new_csv_paths

@@ -33,12 +33,11 @@ def lambda_handler(event, context):
         s3 = boto3.client("s3")
         for path in csv_paths:
             try:
-                s3.upload_file(Filename=f'tmp/{path}', Bucket=BUCKET_NAME, Key=path)
+                s3.upload_file(Filename=f"/tmp/{path}", Bucket=BUCKET_NAME, Key=path)
             except FileNotFoundError:
-                tab_name=path.split('__')[0]
-                logger.info(f'No rows added or modified to table {tab_name}')
+                tab_name = path.split("__")[0]
+                logger.info(f"No rows added or modified to table {tab_name}")
 
-    
     except ClientError as c:
         print(c)
         if c.response["Error"]["Code"] == "NoSuchBucket":
