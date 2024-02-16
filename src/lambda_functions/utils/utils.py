@@ -1,5 +1,4 @@
 import boto3
-
 from lambda_functions.utils.date_utils import convert_utc_to_sql_timestamp
 
 
