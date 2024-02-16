@@ -1,5 +1,5 @@
-import boto3
 from lambda_functions.utils.date_utils import convert_utc_to_sql_timestamp
+import boto3
 
 
 def return_latest_counter_and_timestamp_from_filenames(

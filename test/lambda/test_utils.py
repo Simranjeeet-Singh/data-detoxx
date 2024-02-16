@@ -3,6 +3,7 @@ from src.lambda_functions.utils.utils import (
 
 
 def test_extracts_counter_correctly():
-    input = ['address_[#1]_2022-11-03T142049962Z.csv']
+    input = ['address__[#1]__2022-11-03T142049962Z.csv',
+             'address__[#0]__2021-11-03T142049962Z.csv']
     expout = 1
-    assert rcat('test', input)[0] == expout
+    assert rcat('address', input)[0] == expout
