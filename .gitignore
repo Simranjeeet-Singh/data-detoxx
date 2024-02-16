@@ -166,6 +166,7 @@ cython_debug/
 .terraform.lock.hcl
 *.tfstate
 *.tfstate.*
+tmp
 
 # Misc.
 .DS_Store

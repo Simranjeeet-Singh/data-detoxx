@@ -1,6 +1,7 @@
 from pg8000.native import Connection, identifier, literal
 import pandas as pd
 from datetime import datetime
+import os
 from lambda_functions.utils.date_utils import convert_datetime_to_utc
 from lambda_functions.utils.utils import (
     list_files_from_s3,
@@ -59,22 +60,11 @@ def extract_last_updated_from_table(conn: Connection, table_name: str) -> dateti
 
 
 def save_table_to_csv(cols_name: list, rows: list[list], path: str, logger) -> None:
-    """
-    Parameters:
-    - cols_name (list): A list of strings representing the column names for the DataFrame.
-    - rows (list[list]): A nested list where each inner list represents a row of data.
-    - path (str): The relative path (including the filename) where the CSV file will be saved. It's assumed that
-      'tmp/' is a directory prefix.
-    - logger: A logging.Logger object used to log messages about the operation's success.
-
-    Returns:
-    - None: This function does not return a value but writes data to a file and logs the operation.
-    """
     if rows:
         df = pd.DataFrame(rows)
         df.index = df[0].values
         df.columns = cols_name
-        df.to_csv(f'tmp/{path}', sep=",", index=False, encoding="utf-8")
+        df.to_csv(f"/tmp/{path}", sep=",", index=False, encoding="utf-8")
         logger.info(f"Wrote {len(rows)} to file {path}")
 
 
@@ -101,8 +91,7 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
             extract_last_updated_from_table(conn, table_name)
         )
         counter, last_updated_from_ingestion_bucket_sql_timestamp = (
-            return_latest_counter_and_timestamp_from_filenames(
-                table_name, filenames)
+            return_latest_counter_and_timestamp_from_filenames(table_name, filenames)
         )
         if counter == 0:
             rows = conn.run(
@@ -123,8 +112,7 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
             counter + 1,
             last_updated_from_database_utc_timestamp,
         )
-        folder_name = Path(
-            f'tmp/{table_name}').mkdir(parents=True, exist_ok=True)
+        folder_name = Path(f"/tmp/{table_name}").mkdir(parents=True, exist_ok=True)
         new_csv_paths.append(path)
         save_table_to_csv(cols_name, rows, path, logger)
     return new_csv_paths
