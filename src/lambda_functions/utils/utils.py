@@ -45,7 +45,7 @@ def list_files_from_s3(bucket_name: str) -> list[str]:
     response = client.list_objects(Bucket=bucket_name)
     if "Contents" not in response:
         return []
-    return [item["Key"] for item in response["Contents"]]
+    return [item["Key"].split('/')[-1] for item in response["Contents"]]
 
 
 if __name__ == "__main__":

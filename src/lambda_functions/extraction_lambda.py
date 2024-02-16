@@ -7,6 +7,7 @@ from lambda_functions.utils.utils import (
     list_files_from_s3,
     return_latest_counter_and_timestamp_from_filenames,
 )
+from pathlib import Path
 
 
 def extract_tablenames(conn: Connection) -> list[str]:
@@ -37,7 +38,7 @@ def path_to_csv(table_name: str, counter: int, last_updated: datetime) -> str:
     - path to .csv file containing the downloaded data in format:
     '{table_name}_[#{counter}]_{last_date_converted}.csv'
     """
-    return f"{table_name}__[#{counter}]__{last_updated}.csv"
+    return f"{table_name}/{table_name}__[#{counter}]__{last_updated}.csv"
 
 
 def extract_last_updated_from_table(conn: Connection, table_name: str) -> datetime:
@@ -63,7 +64,7 @@ def save_table_to_csv(cols_name: list, rows: list[list], path: str, logger) -> N
         df = pd.DataFrame(rows)
         df.index = df[0].values
         df.columns = cols_name
-        df.to_csv(path, sep=",", index=False, encoding="utf-8")
+        df.to_csv(f'tmp/{path}', sep=",", index=False, encoding="utf-8")
         logger.info(f"Wrote {len(rows)} to file {path}")
 
 
@@ -111,7 +112,7 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
             counter + 1,
             last_updated_from_database_utc_timestamp,
         )
-        path='tmp/'+path
+        folder_name=Path(f'tmp/{table_name}').mkdir(parents=True, exist_ok=True)
         new_csv_paths.append(path)
         save_table_to_csv(cols_name, rows, path, logger)
     return new_csv_paths
