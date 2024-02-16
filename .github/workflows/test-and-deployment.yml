@@ -14,6 +14,18 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Setup venv
+        run: make requirements
+
+      - name: Run Security Checks
+        run: make security-test
+
+      - name: Run Flake
+        run: make run-black
+
+      - name: Check Coverage
+        run: make check-coverage
+
   run-tests:
     runs-on: ubuntu-latest
     needs: run-checks
