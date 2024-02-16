@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-=======
 import boto3
-
->>>>>>> 86cee553c8cdb4a735a7378d0f79f400b430490c
 from lambda_functions.utils.date_utils import convert_utc_to_sql_timestamp
 import boto3
 

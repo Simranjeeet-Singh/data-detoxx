@@ -2,6 +2,8 @@ from unittest.mock import patch, MagicMock
 from src.lambda_functions.utils.utils import (
     return_latest_counter_and_timestamp_from_filenames as rcat, list_files_from_s3)
 
+import pytest
+
 
 def test_rcat_extracts_counter_correctly():
     input = ['address__[#1]__2022-11-03T142049962Z.csv']
@@ -78,3 +80,9 @@ def test_list_files_from_s3_with_files(mock_boto3_client):
     expected_files = ['file1.txt', 'file2.jpg', 'file3.pdf']
     assert list_files_from_s3(
         "bucket-with-files") == expected_files, "Expected a list of filenames in the bucket"
+
+def test_return_latest_counter_and_timestamp_from_filenames_c_raises_error_if_address_passed_in_wrong_format():
+    with pytest.raises(Exception) as ValueError:
+        input = ['address__[#2]__2022-11-03T142049962Z.csv']
+        test_return_latest_counter_and_timestamp_from_filenames_c_raises_error_if_address_passed_in_wrong_format(input)
+
