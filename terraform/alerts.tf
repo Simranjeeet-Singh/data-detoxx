@@ -57,6 +57,6 @@ resource "aws_sns_topic" "error_alerts" {
 resource "aws_sns_topic_subscription" "email_subscription" {
   topic_arn = aws_sns_topic.error_alerts.arn
   protocol  = "email"
-  endpoint  = "pnzoatzrykuqkusvqg@ckptr.com" #change to real email address
+  endpoint  = "detoxdata7@gmail.com" #change to real email address
 }
 

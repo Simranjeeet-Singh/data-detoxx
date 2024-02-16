@@ -1,7 +1,6 @@
-from utils.list_bucket_contents import list_files_from_s3
+from src.lambda_functions.utils.utils import list_files_from_s3
 import boto3
 from moto import mock_aws
-
 
 @mock_aws
 def test_returns_empty_list_of_file_names_inside_a_empty_bucket():
