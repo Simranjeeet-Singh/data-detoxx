@@ -1,18 +1,14 @@
 from src.lambda_functions.extraction_lambda import (
     extract_tablenames,
     save_table_to_csv,
-    save_db_to_csv,
-    convert_to_utc,
     path_to_csv,
     extract_last_updated_from_table,
-    save_rows_to_csv,
 )
 from unittest.mock import patch, Mock
 import datetime
 import pandas as pd
 
 
-# Some of these tests are now broken, due to change in main functions. Don't run them yet
 def test_import_works():
     assert True
 
@@ -57,14 +53,14 @@ def test_path_to_csv():
     """
     path_to_csv formats the path in the intended way
     """
-    assert path_to_csv("table", 0, "2010") == "./table/table_[#0]_2010.csv"
+    assert path_to_csv("table", 0, "2010") == 'table/table__[#0]__2010.csv'
     assert (
         path_to_csv("table2", 10, "2010-10-10")
-        == "./table2/table2_[#10]_2010-10-10.csv"
+        == "table2/table2__[#10]__2010-10-10.csv"
     )
     assert (
         path_to_csv("table10", 100000, "2010-10-T10101010100Z")
-        == "./table10/table10_[#100000]_2010-10-T10101010100Z.csv"
+        == "table10/table10__[#100000]__2010-10-T10101010100Z.csv"
     )
 
 
