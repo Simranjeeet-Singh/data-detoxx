@@ -63,6 +63,7 @@ resource "aws_iam_policy" "function_logging_policy" {
 
 # Attach Cloudwatch logging policy to Lambda role
 resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
+  depends_on = [ aws_lambda_function.s3_file_reader ]
   role = aws_iam_role.lambda_one_role.id
   policy_arn = aws_iam_policy.function_logging_policy.arn
 }
