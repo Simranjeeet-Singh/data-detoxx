@@ -1,4 +1,4 @@
-from utils.list_bucket_contents import list_files_from_s3
+from src.lambda_functions.utils.utils import list_files_from_s3
 import boto3
 from moto import mock_aws
 
