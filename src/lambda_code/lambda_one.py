@@ -6,6 +6,7 @@ from pg8000 import DatabaseError
 from lambda_functions.extraction_lambda import save_db_to_csv
 from dotenv import load_dotenv
 import os
+from lambda_functions.utils.extract_secrets import get_secret
 
 BUCKET_NAME = "data-detox-ingestion-bucket"
 
@@ -19,14 +20,15 @@ def connect():
     Returns:
         Connection: A pg8000.native Connection object connected to the specified PostgreSQL database.
     """
-    load_dotenv()
+
+    secret_dict = get_secret()
     try:
         conn = Connection(
-            host=os.environ["Hostname"],
-            user=os.environ["Username"],
-            password=os.environ["Password"],
-            database=os.environ["Database_name"],
-            port=os.environ["Port"],
+            host=secret_dict['Hostname'],
+            user=secret_dict['Username'],
+            password=secret_dict['Password'],
+            database=secret_dict['Database_name'],
+            port=secret_dict['Port']
         )
         return conn
     except:
@@ -52,7 +54,8 @@ def lambda_handler(event, context):
         s3 = boto3.client("s3")
         for path in csv_paths:
             try:
-                s3.upload_file(Filename=f"/tmp/{path}", Bucket=BUCKET_NAME, Key=path)
+                s3.upload_file(
+                    Filename=f"/tmp/{path}", Bucket=BUCKET_NAME, Key=path)
             except FileNotFoundError:
                 tab_name = path.split("__")[0]
                 logger.info(f"No rows added or modified to table {tab_name}")
