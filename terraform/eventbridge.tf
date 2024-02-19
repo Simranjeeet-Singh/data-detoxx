@@ -1,7 +1,7 @@
 resource "aws_cloudwatch_event_rule" "lambda_trigger_rule" {
-  name                = "lambda-every-1-minute"
+  name                = "lambda-every-5-minute"
   description         = "retry scheduled every 5 min"
-  schedule_expression = "rate(5 minute)"
+  schedule_expression = "rate(5 minutes)"
 }
 resource "aws_cloudwatch_event_target" "lambda_target" {
   arn  = "arn:aws:lambda:eu-west-2:767397911156:function:lambda_handler" #change to lambda1 arn
