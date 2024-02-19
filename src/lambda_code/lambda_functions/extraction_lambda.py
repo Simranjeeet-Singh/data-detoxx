@@ -1,7 +1,6 @@
 from pg8000.native import Connection, identifier, literal
 import pandas as pd
 from datetime import datetime
-import os
 from lambda_functions.utils.date_utils import convert_datetime_to_utc
 from lambda_functions.utils.utils import (
     list_files_from_s3,
@@ -25,6 +24,7 @@ def extract_tablenames(conn: Connection) -> list[str]:
     return [
         el[0] for el in conn.run(sql_query_tablenames) if el[0] != "_prisma_migrations"
     ]
+
 
 def path_to_csv(table_name: str, counter: int, last_updated: datetime) -> str:
     """
@@ -56,6 +56,7 @@ def extract_last_updated_from_table(conn: Connection, table_name: str) -> dateti
                     ;"""
     )
     return last_timestamp[0][0]
+
 
 def save_table_to_csv(cols_name: list, rows: list[list], path: str, logger) -> None:
     if rows:

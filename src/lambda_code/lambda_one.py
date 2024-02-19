@@ -1,7 +1,6 @@
 import logging
 import boto3
 from botocore.exceptions import ClientError
-import csv
 from pg8000.native import Connection
 from pg8000 import DatabaseError
 from lambda_functions.extraction_lambda import save_db_to_csv
@@ -23,15 +22,16 @@ def connect():
     load_dotenv()
     try:
         conn = Connection(
-        host=os.environ["Hostname"],
-        user=os.environ["Username"],
-        password=os.environ["Password"],
-        database=os.environ["Database_name"],
-        port=os.environ["Port"],
-    )
+            host=os.environ["Hostname"],
+            user=os.environ["Username"],
+            password=os.environ["Password"],
+            database=os.environ["Database_name"],
+            port=os.environ["Port"],
+        )
         return conn
     except:
         raise DatabaseError
+
 
 def lambda_handler(event, context):
     """
@@ -58,14 +58,16 @@ def lambda_handler(event, context):
                 logger.info(f"No rows added or modified to table {tab_name}")
     except DatabaseError as DBE:
         print(DBE)
-        logger.error('Error in accessing the database.')
-        if DBE['C']=='42P01':
-            logger.error(DBE['M'])
+        logger.error("Error in accessing the database.")
+        if DBE["C"] == "42P01":
+            logger.error(DBE["M"])
         else:
             logger.error(DBE)
     except OSError as OSE:
         print(OSE)
-        logger.error('Error while saving .csv file locally - cannot access a non-existent directory')
+        logger.error(
+            "Error while saving .csv file locally - cannot access a non-existent directory"
+        )
     except ClientError as c:
         print(c)
         if c.response["Error"]["Code"] == "NoSuchBucket":
