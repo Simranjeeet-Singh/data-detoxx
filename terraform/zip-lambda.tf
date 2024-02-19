@@ -1,6 +1,6 @@
 resource "null_resource" "install_dependencies" {
   provisioner "local-exec" {
-    command = "pip install -r ${path.module}/../src/lambda_code/requirements.txt -t ${path.module}/../tmp/dependencies/python"
+    command = "pip install -r ${path.module}/../src/lambda_code/lambda_requirements.txt -t ${path.module}/../tmp/dependencies/python"
   }
   triggers = {
   always_run = timestamp()
