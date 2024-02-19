@@ -12,18 +12,21 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.9'
 
       - name: Setup venv
         run: make requirements
 
-      - name: Run Security Checks
+      - name: Setup dev tools
+        run: make dev-setup
+
+      - name: Run security tests
         run: make security-test
 
-      - name: Run Flake
+      - name: Run python code formatter
         run: make run-black
 
-      - name: Check Coverage
+      - name: Check coverage
         run: make check-coverage
 
   run-tests:
@@ -33,7 +36,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.9'
 
       # - name: Run tests
       #   run: make unit-test
