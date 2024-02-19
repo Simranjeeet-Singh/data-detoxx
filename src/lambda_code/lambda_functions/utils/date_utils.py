@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 
 def convert_sql_timestamp_to_utc(datetime_str: str) -> str:

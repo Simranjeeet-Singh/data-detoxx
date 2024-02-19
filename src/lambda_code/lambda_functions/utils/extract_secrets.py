@@ -1,4 +1,3 @@
-
 from botocore.exceptions import ClientError
 import boto3
 import ast
@@ -24,12 +23,3 @@ def get_secret():
         raise e
 
     return ast.literal_eval(get_secret_value_response['SecretString'])
-
-
-# secret_dict = get_secret()
-
-# hostname = secret_dict['hostname']
-# database_name = secret_dict['database_name']
-# username = secret_dict['username']
-# password = secret_dict['password']
-# port = secret_dict['port']
