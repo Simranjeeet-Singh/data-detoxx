@@ -9,6 +9,17 @@ resource "aws_cloudwatch_log_metric_filter" "syntax_error" {
     value     = "1"
   }
 }
+resource "aws_cloudwatch_log_metric_filter" "Runtime-Error" {
+  depends_on = [ aws_cloudwatch_log_group.cw_log_group ]
+  name           = "RuntimeErrorLog"
+  pattern        = "RuntimeError"
+  log_group_name = "/aws/lambda/${aws_lambda_function.s3_file_reader.function_name}"
+  metric_transformation {
+    name      = "RunTimeErrorCount"
+    namespace = "LogMetric"
+    value     = "1"
+  }
+}
 
 resource "aws_cloudwatch_log_metric_filter" "value_error" {
   depends_on = [ aws_cloudwatch_log_group.cw_log_group ]
@@ -28,10 +39,23 @@ resource "aws_cloudwatch_metric_alarm" "lambda-syntax-error-alarm" {
   evaluation_periods        = 1
   metric_name               = "SyntaxErrorCount"
   namespace                 = "LogMetric"
-  period                    = 30 #change to correct period
+  period                    = 300 #change to correct period
   statistic                 = "Sum"
   threshold                 = 1
   alarm_description         = "This metric monitors logs for syntax errors from lambda1"
+  alarm_actions             = [aws_sns_topic.error_alerts.arn]
+  insufficient_data_actions = []
+}
+resource "aws_cloudwatch_metric_alarm" "lambda-Runtime-Error-alarm" {
+  alarm_name                = "lambda-Runtime-Error-count"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = 1
+  metric_name               = "RunTimeErrorCount"
+  namespace                 = "LogMetric"
+  period                    = 300 #change to correct period
+  statistic                 = "Sum"
+  threshold                 = 1
+  alarm_description         = "This metric monitors logs for runtime errors from lambda1"
   alarm_actions             = [aws_sns_topic.error_alerts.arn]
   insufficient_data_actions = []
 }
@@ -42,7 +66,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda-value-error-alarm" {
   evaluation_periods        = 1
   metric_name               = "ValueErrorCount"
   namespace                 = "LogMetric"
-  period                    = 30 #change to correct period
+  period                    = 300 #change to correct period
   statistic                 = "Sum"
   threshold                 = 1
   alarm_description         = "This metric monitors logs for value errors from lambda1"
