@@ -16,12 +16,8 @@ MOTO = 'moto[ec2,s3,all]'
 
 ## Create python interpreter environment.
 
-create-environment: check_and_install_python_version
+create-environment: 
 	@echo ">>> About to create environment: $(PROJECT_NAME)..."
-	@echo ">>> check pyenv versions installed..."
-	( \
-		pyenv versions; \
-	)
 	@echo ">>> Setting up python$(PYTHON_VERSION) VirtualEnv. "
 	( \
 		$(PIP) install -q virtualenv virtualenvwrapper; \
@@ -38,6 +34,10 @@ endef
 
 # Define the check_and_install_python_version target
 check_and_install_python_version:
+	@echo ">>> check pyenv versions installed..."
+	( \
+		pyenv versions; \
+	)
 	@pyenv versions | grep -q $(PYTHON_VERSION) || (pyenv install $(PYTHON_VERSION) && echo "Python $(PYTHON_VERSION) installed.")
 
 
@@ -96,7 +96,7 @@ check-coverage:
 run-checks: security-test run-black unit-test check-coverage
 
 ## Make all
-all: delete-venv requirements dev-setup run-checks
+all: delete-venv check_and_install_python_version requirements dev-setup run-checks
 
 #################################################### John additions ############################################################ 
 
