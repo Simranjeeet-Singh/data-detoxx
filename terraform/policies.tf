@@ -69,33 +69,22 @@ resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
 }
 
 
-
-# ----------------------------------------------------------------
 resource "aws_iam_policy" "lambda_secrets_policy" {
   name        = "lambda_secrets_policy"
   description = "Policy for Lambda to access Secrets Manager"
-
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
         "Effect" : "Allow",
-        "Principal" : {
-          "AWS" : "arn:aws:iam::AccountId:role/LamdaRoleToAccessSecrets"
-        },
-        "Action" : "secretsmanager:GetSecretValue",
-        "Resource" : "arn:aws:secretsmanager:Region:AccountId:secret:SecretName-123123"
+        "Action" : ["secretsmanager:GetSecretValue"],
+        "Resource" : "*"
       }
     ]
   })
 }
 
-resource "aws_iam_policy_attachment" "lambda_secrets_policy_attachment" {
-  name       = "lambda_secrets_policy_attachment"
+resource "aws_iam_role_policy_attachment" "lambda_secret_manager_attachment" {
+  role       = aws_iam_role.lambda_one_role.name
   policy_arn = aws_iam_policy.lambda_secrets_policy.arn
-  roles      = [aws_iam_role.lambda_one_role.id]
 }
-# resource "aws_iam_role_policy_attachment" "lambda-policy-attach" {
-#   role       = aws_iam_role.lambda_one_role.name
-#   policy_arn = [aws_iam_policy.s3_rw_policy.arn]
-# }
