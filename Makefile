@@ -5,7 +5,7 @@
 #################################################################################
 PROJECT_NAME = de-final-project
 REGION = eu-west-2
-PYTHON_VERSION = 3.11.0
+PYTHON_VERSION = 3.11
 WD=$(shell pwd)
 PYTHONPATH=${WD}
 SHELL := /bin/bash
