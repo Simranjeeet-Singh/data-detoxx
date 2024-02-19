@@ -3,11 +3,11 @@ import boto3
 from botocore.exceptions import ClientError
 import csv
 from pg8000.native import Connection
+from pg8000 import DatabaseError
 from lambda_functions.extraction_lambda import save_db_to_csv
 from dotenv import load_dotenv
 import os
 
-# CHANGE BUCKET NAME
 BUCKET_NAME = "data-detox-ingestion-bucket"
 
 
@@ -21,15 +21,17 @@ def connect():
         Connection: A pg8000.native Connection object connected to the specified PostgreSQL database.
     """
     load_dotenv()
-    conn = Connection(
+    try:
+        conn = Connection(
         host=os.environ["Hostname"],
         user=os.environ["Username"],
         password=os.environ["Password"],
         database=os.environ["Database_name"],
         port=os.environ["Port"],
     )
-    return conn
-
+        return conn
+    except:
+        raise DatabaseError
 
 def lambda_handler(event, context):
     """
@@ -54,7 +56,16 @@ def lambda_handler(event, context):
             except FileNotFoundError:
                 tab_name = path.split("__")[0]
                 logger.info(f"No rows added or modified to table {tab_name}")
-
+    except DatabaseError as DBE:
+        print(DBE)
+        logger.error('Error in accessing the database.')
+        if DBE['C']=='42P01':
+            logger.error(DBE['M'])
+        else:
+            logger.error(DBE)
+    except OSError as OSE:
+        print(OSE)
+        logger.error('Error while saving .csv file locally - cannot access a non-existent directory')
     except ClientError as c:
         print(c)
         if c.response["Error"]["Code"] == "NoSuchBucket":
