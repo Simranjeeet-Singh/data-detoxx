@@ -3,8 +3,7 @@
 # Makefile to build the project
 #
 #################################################################################
-
-PROJECT_NAME = de-project-DataDetox
+PROJECT_NAME = de-final-project
 REGION = eu-west-2
 PYTHON_INTERPRETER = python
 WD=$(shell pwd)
@@ -12,8 +11,10 @@ PYTHONPATH=${WD}
 SHELL := /bin/bash
 PROFILE = default
 PIP:=pip
+LAMBDA_ONE_PATH="$(WD)/src/lambda_code"
 
 ## Create python interpreter environment.
+
 create-environment:
 	@echo ">>> About to create environment: $(PROJECT_NAME)..."
 	@echo ">>> check python3 version"
@@ -72,11 +73,11 @@ run-black:
 
 ## Run the unit tests
 unit-test:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest -v)
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH}:${LAMBDA_ONE_PATH} pytest -v)
 
 ## Run the coverage check
 check-coverage:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} coverage run --omit 'venv/*' -m pytest && coverage report -m)
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH}:${LAMBDA_ONE_PATH} coverage run --omit 'venv/*' -m pytest && coverage report -m)
 
 ## Run all checks
 run-checks: security-test run-black unit-test check-coverage

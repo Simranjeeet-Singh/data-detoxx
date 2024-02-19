@@ -13,8 +13,8 @@ BUCKET_NAME = "data-detox-ingestion-bucket"
 
 def connect():
     """
-    Establishes a connection to a PostgreSQL database using credentials stored in environment variables. 
-    The function loads these variables from a .env file using dotenv, then uses them to create a pg8000.native 
+    Establishes a connection to a PostgreSQL database using credentials stored in environment variables.
+    The function loads these variables from a .env file using dotenv, then uses them to create a pg8000.native
     Connection object.
 
     Returns:
@@ -33,8 +33,8 @@ def connect():
 
 def lambda_handler(event, context):
     """
-    Acts as the entry point for the AWS Lambda function. It initializes a logger, connects to a PostgreSQL 
-    database, extracts data into CSV files, and uploads these files to an AWS S3 bucket. The function handles 
+    Acts as the entry point for the AWS Lambda function. It initializes a logger, connects to a PostgreSQL
+    database, extracts data into CSV files, and uploads these files to an AWS S3 bucket. The function handles
     exceptions by logging them and can raise a RuntimeError for unexpected errors.
 
     Parameters:
