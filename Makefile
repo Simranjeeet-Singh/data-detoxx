@@ -12,6 +12,7 @@ SHELL := /bin/bash
 PROFILE = default
 PIP:=pip
 LAMBDA_ONE_PATH="$(WD)/src/lambda_code"
+MOTO = 'moto[ec2,s3,all]'
 
 ## Create python interpreter environment.
 
@@ -57,8 +58,15 @@ black:
 coverage:
 	$(call execute_in_env, $(PIP) install coverage)
 
-## Set up dev requirements (bandit, safety, flake8)
-dev-setup: bandit safety black coverage
+pytest: 
+	$(call execute_in_env, $(PIP) install pytest)
+
+moto:
+	$(call execute_in_env, $(PIP) install $(MOTO))
+
+
+## Set up dev requirements (bandit, safety, flake8, pytest, moto)
+dev-setup: bandit safety black coverage pytest moto
 
 # Build / Run
 
@@ -83,4 +91,21 @@ check-coverage:
 run-checks: security-test run-black unit-test check-coverage
 
 ## Make all
-all: requirements dev-setup run-checks
+all: delete-venv requirements dev-setup run-checks
+
+#################################################### John additions ############################################################ 
+
+## Delete venv
+delete-venv:
+	rm -rf venv
+
+## Create new project venv from project_primary_dependencies and builds new requirements.txt file
+new-project-requirements: delete-venv create-environment
+	$(call execute_in_env, $(PIP) install -r project_primary_dependencies.txt)
+	$(call execute_in_env, $(PIP) freeze > requirements.txt)
+
+## Create new lambda venv from module_requirements and builds new lambda_requirements.txt file
+new-lambda-requirements: delete-venv create-environment
+	$(call execute_in_env, $(PIP) install -r ./src/lambda_code/lambda_primary_dependencies.txt)
+	$(call execute_in_env, $(PIP) freeze > ./src/lambda_code/lambda_requirements.txt)
+
