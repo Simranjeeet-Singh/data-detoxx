@@ -26,7 +26,6 @@ def extract_tablenames(conn: Connection) -> list[str]:
         el[0] for el in conn.run(sql_query_tablenames) if el[0] != "_prisma_migrations"
     ]
 
-
 def path_to_csv(table_name: str, counter: int, last_updated: datetime) -> str:
     """
     Parameters:
@@ -57,7 +56,6 @@ def extract_last_updated_from_table(conn: Connection, table_name: str) -> dateti
                     ;"""
     )
     return last_timestamp[0][0]
-
 
 def save_table_to_csv(cols_name: list, rows: list[list], path: str, logger) -> None:
     if rows:
