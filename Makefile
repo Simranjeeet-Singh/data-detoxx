@@ -5,7 +5,7 @@
 #################################################################################
 PROJECT_NAME = de-final-project
 REGION = eu-west-2
-PYTHON_INTERPRETER = python
+PYTHON_VERSION = 3.11
 WD=$(shell pwd)
 PYTHONPATH=${WD}
 SHELL := /bin/bash
@@ -16,16 +16,12 @@ MOTO = 'moto[ec2,s3,all]'
 
 ## Create python interpreter environment.
 
-create-environment:
+create-environment: 
 	@echo ">>> About to create environment: $(PROJECT_NAME)..."
-	@echo ">>> check python3 version"
+	@echo ">>> Setting up python$(PYTHON_VERSION) VirtualEnv. "
 	( \
-		$(PYTHON_INTERPRETER) --version; \
-	)
-	@echo ">>> Setting up VirtualEnv."
-	( \
-	    $(PIP) install -q virtualenv virtualenvwrapper; \
-	    virtualenv venv --python=$(PYTHON_INTERPRETER); \
+		$(PIP) install -q virtualenv virtualenvwrapper; \
+	    virtualenv venv --python=$(PYTHON_VERSION); \
 	)
 
 # Define utility variable to help calling Python from the virtual environment
@@ -35,6 +31,15 @@ ACTIVATE_ENV := source venv/bin/activate
 define execute_in_env
 	$(ACTIVATE_ENV) && $1
 endef
+
+# Define the check_and_install_python_version target
+check_and_install_python_version:
+	@echo ">>> check pyenv versions installed..."
+	( \
+		pyenv versions; \
+	)
+	@pyenv versions | grep -q $(PYTHON_VERSION) || (pyenv install $(PYTHON_VERSION) && echo "Python $(PYTHON_VERSION) installed.")
+
 
 ## Build the environment requirements
 requirements: create-environment
@@ -72,7 +77,7 @@ dev-setup: bandit safety black coverage pytest moto
 
 ## Run the security test (bandit + safety)
 security-test:
-	$(call execute_in_env, safety check -r ./requirements.txt)
+	$(call execute_in_env, safety check -r requirements.txt)
 	$(call execute_in_env, bandit -lll */*.py *c/*/*.py)
 
 ## Run the flake8 code check
@@ -91,7 +96,7 @@ check-coverage:
 run-checks: security-test run-black unit-test check-coverage
 
 ## Make all
-all: delete-venv requirements dev-setup run-checks
+all: delete-venv check_and_install_python_version requirements dev-setup run-checks
 
 #################################################### John additions ############################################################ 
 
