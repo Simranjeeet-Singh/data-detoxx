@@ -5,7 +5,7 @@
 #################################################################################
 PROJECT_NAME = de-final-project
 REGION = eu-west-2
-PYTHON_INTERPRETER = python
+PYTHON_VERSION = 3.11.0
 WD=$(shell pwd)
 PYTHONPATH=${WD}
 SHELL := /bin/bash
@@ -16,16 +16,16 @@ MOTO = 'moto[ec2,s3,all]'
 
 ## Create python interpreter environment.
 
-create-environment:
+create-environment: check_and_install_python_version
 	@echo ">>> About to create environment: $(PROJECT_NAME)..."
-	@echo ">>> check python3 version"
+	@echo ">>> check pyenv versions installed..."
 	( \
-		$(PYTHON_INTERPRETER) --version; \
+		pyenv versions; \
 	)
-	@echo ">>> Setting up VirtualEnv."
+	@echo ">>> Setting up python$(PYTHON_VERSION) VirtualEnv. "
 	( \
-	    $(PIP) install -q virtualenv virtualenvwrapper; \
-	    virtualenv venv --python=$(PYTHON_INTERPRETER); \
+		$(PIP) install -q virtualenv virtualenvwrapper; \
+	    virtualenv venv --python=$(PYTHON_VERSION); \
 	)
 
 # Define utility variable to help calling Python from the virtual environment
@@ -35,6 +35,11 @@ ACTIVATE_ENV := source venv/bin/activate
 define execute_in_env
 	$(ACTIVATE_ENV) && $1
 endef
+
+# Define the check_and_install_python_version target
+check_and_install_python_version:
+	@pyenv versions | grep -q $(PYTHON_VERSION) || (pyenv install $(PYTHON_VERSION) && echo "Python $(PYTHON_VERSION) installed.")
+
 
 ## Build the environment requirements
 requirements: create-environment
