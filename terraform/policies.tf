@@ -73,7 +73,11 @@ resource "aws_cloudwatch_log_group" "cw_log_group" {
   name = "/aws/lambda/${aws_lambda_function.s3_file_reader.function_name}"
   #   "/aws/lambda/${aws_lambda_function.demo_lambda.function_name}"
 }
-
+# Lambda 2
+resource "aws_cloudwatch_log_group" "cw_log_group_2" {
+  name = "/aws/lambda/${aws_lambda_function.s3_processor.function_name}"
+  #   "/aws/lambda/${aws_lambda_function.demo_lambda.function_name}"
+}
 # Create Cloudwatch logging policy
 resource "aws_iam_policy" "function_logging_policy" {
   name = "function-logging-policy"
@@ -98,7 +102,12 @@ resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
   role       = aws_iam_role.lambda_one_role.id
   policy_arn = aws_iam_policy.function_logging_policy.arn
 }
-
+#Lambda 2
+resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment_2" {
+  depends_on = [aws_lambda_function.s3_processor]
+  role       = aws_iam_role.lambda_two_role.id
+  policy_arn = aws_iam_policy.function_logging_policy.arn
+}
 
 resource "aws_iam_policy" "lambda_secrets_policy" {
   name        = "lambda_secrets_policy"

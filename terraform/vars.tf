@@ -1,11 +1,9 @@
 variable "ingestion_storage" {
     type = string
-    default = "data-detox-ingestion-bucket2"
+    default = "data-detox-ingestion-bucket"
 }
 
 variable "processed_storage" {
     type = string
-    default = "data-detox-processed-bucket2"
+    default = "data-detox-processed-bucket"
 }
-
-#change these back!
