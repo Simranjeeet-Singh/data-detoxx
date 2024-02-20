@@ -21,9 +21,16 @@ resource "aws_cloudwatch_event_rule" "lambda_2_trigger_rule" {
   description         = "Trigger Lambda when object is written to S3 bucket"
   event_pattern = jsonencode({
     source      = ["aws.s3"],
-    detail      = {
-      eventName   = ["PutObject"]
-    },
+    detail-type      = [
+      "Object Created"
+      ],
+    detail :{
+      bucket:{
+        name:[
+          aws_s3_bucket.ingestion_bucket.bucket
+        ]
+      }
+    }
     resources   = [aws_s3_bucket.ingestion_bucket.arn],  # "arn:aws:s3:::s3_buck"
   })
 }
