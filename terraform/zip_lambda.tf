@@ -22,12 +22,12 @@ data "archive_file" "lambda_one_zip" {
   depends_on = [data.archive_file.lambda_dependencies_zip]
   type             = "zip"
   output_path      = "${path.module}/../tmp/lambda_one.zip"
-  source_dir       = "${path.module}/../src/lambda_code"
+  source_dir       = "${path.module}/../src/lambda_one"
 }
 
 data "archive_file" "lambda_two_zip" {
   depends_on = [data.archive_file.lambda_dependencies_zip]
   type             = "zip"
   output_path      = "${path.module}/../tmp/lambda_two.zip"
-  source_dir       = "${path.module}/../src/lambda_code"
+  source_dir       = "${path.module}/../src/lambda_two"
 }

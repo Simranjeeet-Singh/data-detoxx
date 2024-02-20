@@ -42,7 +42,11 @@ resource "aws_iam_role_policy_attachment" "lambda-policy-attach" {
   policy_arn = aws_iam_policy.s3_rw_policy.arn
 }
 #Policy attached to lambda-two role
-resource "aws_iam_role_policy_attachment" "lambda2-policy-attach" {
+resource "aws_iam_role_policy_attachment" "lambda2-policy-attach-ingestion" {
+  role       = aws_iam_role.lambda_two_role.name
+  policy_arn = aws_iam_policy.s3_rw_policy.arn
+}
+resource "aws_iam_role_policy_attachment" "lambda2-policy-attach-processed" {
   role       = aws_iam_role.lambda_two_role.name
   policy_arn = aws_iam_policy.s3_rw_policy_processed.arn
 }
