@@ -121,7 +121,7 @@ def get_dataframe_from_s3(
         dfs.append(csv_data)
 
     concatenated_df = pd.concat(dfs, ignore_index=True)
-    concatenated_df.to_csv(table_name + ".csv", index=False)
+    # concatenated_df.to_csv(table_name + ".csv", index=False)
     return concatenated_df
 
 
