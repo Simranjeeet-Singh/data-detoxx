@@ -6,7 +6,11 @@ resource "aws_iam_policy" "s3_rw_policy" {
   description = "Read,Write premissions for lambda"
   policy      = data.aws_iam_policy_document.s3_rw_policy.json
 }
-
+resource "aws_iam_policy" "s3_rw_policy_processed" {
+  name        = "s3-rw-policy-${var.processed_storage}"
+  description = "Read, Write premissions to processed bucket for lambda"
+  policy      = data.aws_iam_policy_document.s3_rw_policy_processed.json
+}
 
 #Read and Write permission statements for data-detox s3 bucket
 data "aws_iam_policy_document" "s3_rw_policy" {
@@ -36,7 +40,34 @@ data "aws_iam_policy_document" "s3_rw_policy" {
     ]
   }
 }
+#Lambda 2
+data "aws_iam_policy_document" "s3_rw_policy_processed" {
+  version = "2012-10-17"
 
+  statement {
+    sid    = "ListObjectsInBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.processed_storage}"
+    ]
+  }
+
+  statement {
+    sid    = "AllObjectActions"
+    effect = "Allow"
+
+    actions = [
+      "s3:*Object"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.processed_storage}/*"
+    ]
+  }
+}
 # Create Cloudwatch log group
 resource "aws_cloudwatch_log_group" "cw_log_group" {
   name = "/aws/lambda/${aws_lambda_function.s3_file_reader.function_name}"
