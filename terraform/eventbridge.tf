@@ -4,7 +4,7 @@ resource "aws_cloudwatch_event_rule" "lambda_trigger_rule" {
   schedule_expression = "rate(5 minutes)"
 }
 resource "aws_cloudwatch_event_target" "lambda_target" {
-  arn  = "arn:aws:lambda:eu-west-2:767397911156:function:lambda_handler" #change to lambda1 arn
+  arn  = aws_lambda_function.s3_file_reader.arn
   rule = aws_cloudwatch_event_rule.lambda_trigger_rule.name
 }
 resource "aws_lambda_permission" "cloudwatch_lambda_permission" {

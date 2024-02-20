@@ -39,8 +39,8 @@ data "aws_iam_policy_document" "s3_rw_policy" {
       "arn:aws:s3:::${var.ingestion_storage}/*"
     ]
   }
-}
-#Lambda 2
+ }
+#PROCESSED bucket rw policy
 data "aws_iam_policy_document" "s3_rw_policy_processed" {
   version = "2012-10-17"
 

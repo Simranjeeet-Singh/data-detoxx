@@ -13,7 +13,7 @@ data "aws_iam_policy_document" "assume_role" {
     actions = ["sts:AssumeRole"]
   }
 }
-#lambda_2
+# lambda_2
 data "aws_iam_policy_document" "assume_role_2" {
   statement {
     effect = "Allow"

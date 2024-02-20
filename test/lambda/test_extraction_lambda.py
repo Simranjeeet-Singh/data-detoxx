@@ -1,4 +1,4 @@
-from src.lambda_code.lambda_functions.extraction_lambda import (
+from src.lambda_one.lambda_functions.extraction_lambda import (
     extract_tablenames,
     save_table_to_csv,
     path_to_csv,
