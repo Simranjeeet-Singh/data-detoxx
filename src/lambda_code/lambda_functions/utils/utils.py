@@ -94,9 +94,11 @@ def get_dataframe_from_s3(
     table_name: str,
     counter_start: int = None,
     counter_end: int = None,
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """
-    Fetches CSV files from an S3 bucket's folder titled 'table_name', concatenates them into a single DataFrame.
+    !!!!!!!!!!!!COUNTER NOT WORKING YET!!!!!!!!!!!!
+
+    Reads CSV files from an S3 bucket's folder titled table_name, concatenates them and returns a single pd.DataFrame. If no .csv files are found, returns None.
 
     Parameters:
     - bucket_name (str): The name of the S3 bucket.
@@ -115,9 +117,12 @@ def get_dataframe_from_s3(
 
     client = boto3.client("s3")
     response = client.list_objects_v2(Bucket=bucket_name, Prefix=table_name)
+    if response["KeyCount"] == 0:
+        return None
+
     table_s3_keys = [item["Key"] for item in response["Contents"]]
     dfs = []
-    for s3_key in table_s3_keys[counter_start:counter_end]:
+    for s3_key in table_s3_keys:  # COUNTER NOT IMPLEMENTED
         response = client.get_object(Bucket=bucket_name, Key=s3_key)
         csv_data = pd.read_csv(response["Body"])
         dfs.append(csv_data)
