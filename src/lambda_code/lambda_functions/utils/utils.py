@@ -1,5 +1,7 @@
 import boto3
-from date_utils import convert_utc_to_sql_timestamp
+from src.lambda_code.lambda_functions.utils.date_utils import (
+    convert_utc_to_sql_timestamp,
+)
 import pandas as pd
 
 
@@ -94,7 +96,7 @@ def get_dataframe_from_s3(
     counter_end: int = None,
 ) -> pd.DataFrame:
     """
-    Fetches CSV files from an S3 bucket's folder titled 'table_name', concatenates them into a single DataFrame, and saves the DataFrame to a CSV file.
+    Fetches CSV files from an S3 bucket's folder titled 'table_name', concatenates them into a single DataFrame.
 
     Parameters:
     - bucket_name (str): The name of the S3 bucket.
@@ -105,7 +107,7 @@ def get_dataframe_from_s3(
     Returns:
     - pd.DataFrame: A DataFrame containing the concatenated data from all CSV files.
 
-    The function fetches CSV files from the specified S3 folder, concatenates them into a single DataFrame, and saves the DataFrame to a CSV file named 'table_name.csv' in the current working directory.
+    The function fetches CSV files from the specified S3 folder, concatenates them into a single DataFrame.
 
     Example:
     df = get_dataframe_from_s3(bucket_name='my_bucket', table_name='my_folder', counter_start=0, counter_end=5)
@@ -121,7 +123,6 @@ def get_dataframe_from_s3(
         dfs.append(csv_data)
 
     concatenated_df = pd.concat(dfs, ignore_index=True)
-    # concatenated_df.to_csv(table_name + ".csv", index=False)
     return concatenated_df
 
 
