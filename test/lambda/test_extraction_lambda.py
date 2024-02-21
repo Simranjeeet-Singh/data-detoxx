@@ -18,7 +18,7 @@ def test_extract_tablenames_one_table():
     extract_tablenames extracts names from db with one table
     """
     with patch(
-        "src.lambda_code.lambda_functions.extraction_lambda.Connection"
+        "src.lambda_one.lambda_functions.extraction_lambda.Connection"
     ) as conn_patched:
         conn_patched.run.return_value = [["ciao"]]
         assert extract_tablenames(conn_patched) == ["ciao"]
@@ -29,7 +29,7 @@ def test_extract_tablenames_zero_tables():
     extract_tablenames extracts names from db with zero tables
     """
     with patch(
-        "src.lambda_code.lambda_functions.extraction_lambda.Connection"
+        "src.lambda_one.lambda_functions.extraction_lambda.Connection"
     ) as conn_patched:
         conn_patched.run.return_value = []
         assert extract_tablenames(conn_patched) == []
@@ -41,7 +41,7 @@ def test_extract_tablenames_many_tables():
     including a "_prisma_migrations" that should not be extracted
     """
     with patch(
-        "src.lambda_code.lambda_functions.extraction_lambda.Connection"
+        "src.lambda_one.lambda_functions.extraction_lambda.Connection"
     ) as conn_patched:
         conn_patched.run.return_value = [
             ["a"],
@@ -75,7 +75,7 @@ def test_extract_last_timestamp():
     extract_last_date retrieves the only entry of a single row
     """
     with patch(
-        "src.lambda_code.lambda_functions.extraction_lambda.Connection"
+        "src.lambda_one.lambda_functions.extraction_lambda.Connection"
     ) as conn_patched:
         conn_patched.run.return_value = [
             [datetime.datetime(2022, 11, 3, 14, 20, 52, 18600)]
