@@ -1,13 +1,13 @@
 import logging
 import boto3
 from botocore.exceptions import ClientError
-import csv
 from pg8000.native import Connection
+from pg8000 import DatabaseError
 from lambda_functions.extraction_lambda import save_db_to_csv
 from dotenv import load_dotenv
 import os
-
-# CHANGE BUCKET NAME
+from lambda_functions.utils.extract_secrets import get_secret
+from lambda_functions.utils.utils import WrongFilesIngestionBucket
 BUCKET_NAME = "data-detox-ingestion-bucket"
 
 
@@ -20,15 +20,19 @@ def connect():
     Returns:
         Connection: A pg8000.native Connection object connected to the specified PostgreSQL database.
     """
-    load_dotenv()
-    conn = Connection(
-        host=os.environ["Hostname"],
-        user=os.environ["Username"],
-        password=os.environ["Password"],
-        database=os.environ["Database_name"],
-        port=os.environ["Port"],
-    )
-    return conn
+
+    secret_dict = get_secret()
+    try:
+        conn = Connection(
+            host=secret_dict['Hostname'],
+            user=secret_dict['Username'],
+            password=secret_dict['Password'],
+            database=secret_dict['Database_name'],
+            port=secret_dict['Port']
+        )
+        return conn
+    except:
+        raise DatabaseError
 
 
 def lambda_handler(event, context):
@@ -50,15 +54,30 @@ def lambda_handler(event, context):
         s3 = boto3.client("s3")
         for path in csv_paths:
             try:
-                s3.upload_file(Filename=f"/tmp/{path}", Bucket=BUCKET_NAME, Key=path)
+                s3.upload_file(
+                    Filename=f"/tmp/{path}", Bucket=BUCKET_NAME, Key=path)
             except FileNotFoundError:
                 tab_name = path.split("__")[0]
                 logger.info(f"No rows added or modified to table {tab_name}")
-
+    except DatabaseError as DBE:
+        print(DBE)
+        logger.error("Error in accessing the database.")
+        if DBE["C"] == "42P01":
+            logger.error(DBE["M"])
+        else:
+            logger.error(DBE)
+    except OSError as OSE:
+        print(OSE)
+        logger.error(
+            "Error while saving .csv file locally - cannot access a non-existent directory"
+        )
     except ClientError as c:
         print(c)
         if c.response["Error"]["Code"] == "NoSuchBucket":
             logger.error(f"No such bucket - {BUCKET_NAME}")
+    except WrongFilesIngestionBucket:
+        logger.error('A file with the wrong name format was put in the ingestion bucket. Please remove it to continue execution.')
+        raise RuntimeError
     except Exception as e:
         logger.error(e)
         raise RuntimeError

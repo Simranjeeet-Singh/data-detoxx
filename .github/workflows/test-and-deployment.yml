@@ -12,18 +12,21 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Setup venv
         run: make requirements
 
-      - name: Run Security Checks
+      - name: Setup dev tools
+        run: make dev-setup
+
+      - name: Run security tests
         run: make security-test
 
-      - name: Run Flake
+      - name: Run python code formatter
         run: make run-black
 
-      - name: Check Coverage
+      - name: Check coverage
         run: make check-coverage
 
   run-tests:
@@ -33,7 +36,7 @@ jobs:
       - name: Checkout Repo
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       # - name: Run tests
       #   run: make unit-test
@@ -51,12 +54,6 @@ jobs:
           aws-region: eu-west-2
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Setup RDS CLI
-        run: echo "DB_NAME=${{ secrets.DB_NAME }}" >> $GITHUB_ENV
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
-          echo "DB_PORT=${{ secrets.DB_PORT }}" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3

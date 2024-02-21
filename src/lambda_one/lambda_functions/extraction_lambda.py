@@ -1,7 +1,6 @@
 from pg8000.native import Connection, identifier, literal
 import pandas as pd
 from datetime import datetime
-import os
 from lambda_functions.utils.date_utils import convert_datetime_to_utc
 from lambda_functions.utils.utils import (
     list_files_from_s3,
