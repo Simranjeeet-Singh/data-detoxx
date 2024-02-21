@@ -1,7 +1,5 @@
 from src.transform_staff_table import transform_staff_table
 import pandas as pd
-from unittest.mock import patch
-
 
 def test_returns_correct_dataframe():
     staff_df = pd.DataFrame(
