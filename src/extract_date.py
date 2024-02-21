@@ -4,7 +4,7 @@ import calendar
 
 def extract_date(timestamp: str) -> dict:
     """
-    Convert a timpetamp into a dictionary with useful key-value pairs
+    Convert a timpetamp or date string into a dictionary with useful key-value pairs
 
     Parameters:
     - timestamp (str): A timestamp string in the format 'YYYY-MM-DD HH:MM:SS.sss'
@@ -20,11 +20,10 @@ def extract_date(timestamp: str) -> dict:
         - quarter [int]
     """
 
-    dt = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
+    dt = datetime.strptime(timestamp[:10], "%Y-%m-%d").date()
 
-    print(dt)
-
-    return {'year': dt.year,
+    return {'date': dt.strftime("%Y-%m-%d"),
+            'year': dt.year,
             'month': dt.month,
             'day': dt.day,
             'day_of_week': dt.weekday(),

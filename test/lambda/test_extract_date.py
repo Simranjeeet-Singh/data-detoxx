@@ -32,9 +32,21 @@ def test_correctly_returns_month_name():
 
     assert output['month_name'] == 'February'
 
+
 def test_correctly_returns_quarter():
     test_timestamp = '2024-02-21 00:00:00.000'
 
     output = extract_date(test_timestamp)
 
+    print(output)
+
     assert output['quarter'] == 1
+
+
+def test_returns_correct_dict_when_passed_date_instead_of_timestamp():
+    test_date = '2024-02-21'
+
+    output = extract_date(test_date)
+
+    assert output == {'date': '2024-02-21', 'year': 2024, 'month': 2, 'day': 21, 'day_of_week': 2,
+                      'day_name': 'Wednesday', 'month_name': 'February', 'quarter': 1}

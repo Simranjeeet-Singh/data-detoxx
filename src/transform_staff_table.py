@@ -5,7 +5,8 @@ def transform_staff_table(staff_df: pd.DataFrame, department_df: pd.DataFrame) -
     ''' 
     Parameters:
     - staff_df (DataFrame): The `DataFrame` containing staff information.
-    - department_df (DataFrame): The `DataFrame` containing department information. \n
+    - department_df (DataFrame): The `DataFrame` containing department information.
+
     Returns:
     - DataFrame: A new `DataFrame` with the following columns:
         `staff_id`,`first_name`,`last_name`,`department_name`,`location`,`email_address`

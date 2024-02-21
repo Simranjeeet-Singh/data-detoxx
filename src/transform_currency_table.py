@@ -34,6 +34,8 @@ def transform_currency_table(currency_df: pd.DataFrame) -> pd.DataFrame:
     - The function `cccn` used for converting currency codes to currency names is assumed to be defined elsewhere.
     """
     currency_df['currency_name'] = currency_df['currency_code'].apply(cccn)
+
     transformed_df = currency_df[[
         'currency_id', 'currency_code', 'currency_name']]
+
     return transformed_df
