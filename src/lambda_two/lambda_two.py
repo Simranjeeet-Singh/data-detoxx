@@ -6,4 +6,5 @@ def lambda_handler2(event,context):
     logger.setLevel(logging.INFO)
     logger.error('error')
     s3 = boto3.client("s3")
-    s3.put_object(Bucket='data-detox-processed-bucket2', Key='s3_key.txt', Body='file_data')
+    s3.put_object(Bucket='data-detox-processed-bucket', Key='s3_key.txt', Body='file_data')
+    raise RuntimeError

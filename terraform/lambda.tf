@@ -21,3 +21,11 @@ resource "aws_lambda_function" "s3_processor" {
   timeout = 600
   # layers = [aws_lambda_layer_version.lambda_two_dependencies.arn, "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python39:16"]
 }
+
+resource "aws_lambda_permission" "allow_s3" {
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.s3_processor.function_name
+  principal = "s3.amazonaws.com"
+  source_arn = aws_s3_bucket.ingestion_bucket.arn
+  source_account = data.aws_caller_identity.current.account_id
+}
