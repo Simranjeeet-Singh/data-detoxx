@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def transform_staff_table(staff_df, department_df) -> pd.DataFrame:
+def transform_staff_table(staff_df: pd.DataFrame, department_df: pd.DataFrame) -> pd.DataFrame:
     ''' 
     Parameters:
     - staff_df (DataFrame): The `DataFrame` containing staff information.
