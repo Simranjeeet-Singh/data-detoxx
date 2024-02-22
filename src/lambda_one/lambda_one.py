@@ -7,6 +7,7 @@ from lambda_functions.extraction_lambda import save_db_to_csv
 from dotenv import load_dotenv
 import os
 from lambda_functions.utils.extract_secrets import get_secret
+from lambda_functions.utils.utils import WrongFilesIngestionBucket
 
 BUCKET_NAME = "data-detox-ingestion-bucket"
 
@@ -74,6 +75,11 @@ def lambda_handler(event, context):
         print(c)
         if c.response["Error"]["Code"] == "NoSuchBucket":
             logger.error(f"No such bucket - {BUCKET_NAME}")
+    except WrongFilesIngestionBucket:
+        logger.error(
+            "A file with the wrong name format was put in the ingestion bucket. Please remove it to continue execution."
+        )
+        raise RuntimeError
     except Exception as e:
         logger.error(e)
         raise RuntimeError
