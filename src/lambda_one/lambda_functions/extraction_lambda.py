@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 from src.utils.date_utils import convert_datetime_to_utc
-from src.utils.utils import (
+from src.utils.file_reading_utils import (
     list_files_from_s3,
     return_latest_counter_and_timestamp_from_filenames,
 )
