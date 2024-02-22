@@ -7,11 +7,10 @@ PROJECT_NAME = de-final-project
 REGION = eu-west-2
 PYTHON_VERSION = 3.11
 WD=$(shell pwd)
-PYTHONPATH=${WD}
+PYTHONPATH="$(WD):$(WD)/src"
 SHELL := /bin/bash
 PROFILE = default
 PIP:=pip
-LAMBDA_ONE_PATH="$(WD)/src/lambda_one"
 MOTO = 'moto[ec2,s3,all]'
 
 ## Create python interpreter environment.
@@ -86,11 +85,11 @@ run-black:
 
 ## Run the unit tests
 unit-test:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH}:${LAMBDA_ONE_PATH} pytest -v)
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest -v)
 
 ## Run the coverage check
 check-coverage:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH}:${LAMBDA_ONE_PATH} coverage run --omit 'venv/*' -m pytest && coverage report -m)
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} coverage run --omit 'venv/*' -m pytest && coverage report -m)
 
 ## Run all checks
 run-checks: security-test run-black unit-test check-coverage
@@ -110,7 +109,10 @@ new-project-requirements: delete-venv create-environment
 	$(call execute_in_env, $(PIP) freeze > requirements.txt)
 
 ## Create new lambda venv from module_requirements and builds new lambda_requirements.txt file
-new-lambda-requirements: delete-venv create-environment
-	$(call execute_in_env, $(PIP) install -r ./src/lambda_code/lambda_primary_dependencies.txt)
-	$(call execute_in_env, $(PIP) freeze > ./src/lambda_code/lambda_requirements.txt)
+new-lambda-one-requirements: delete-venv create-environment
+	$(call execute_in_env, $(PIP) install -r ./src/lambda_one/lambda_primary_dependencies.txt)
+	$(call execute_in_env, $(PIP) freeze > ./src/lambda_one/lambda_requirements.txt)
 
+new-lambda-two-requirements: delete-venv create-environment
+	$(call execute_in_env, $(PIP) install -r ./src/lambda_two/lambda_primary_dependencies.txt)
+	$(call execute_in_env, $(PIP) freeze > ./src/lambda_two/lambda_requirements.txt)
