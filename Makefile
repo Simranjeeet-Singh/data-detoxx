@@ -86,7 +86,7 @@ run-black:
 
 ## Run the unit tests
 unit-test:
-	$(call execute_in_env, PYTHONPATH=${PYTHONPATH}:${LAMBDA_ONE_PATH} pytest -vv)
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH}:${LAMBDA_ONE_PATH} pytest -v)
 
 ## Run the coverage check
 check-coverage:
