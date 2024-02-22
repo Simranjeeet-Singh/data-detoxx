@@ -1,5 +1,6 @@
 import logging
 import boto3
+import pandas as pd
 #TBD: import all transformation functions
 
 def lambda_handler2(event, context):
@@ -11,7 +12,15 @@ def lambda_handler2(event, context):
         df='' #john_function('data-detox-ingestion-bucket', tablename)
         dataframes[tablename]=df
     #dataframes is a dictionary containining all dataframes with the last updated/added data 
-    process_dataframes(dataframes)
+    processed_dataframes=process_dataframes(dataframes)
+    for tablename in process_dataframes.keys():
+        #save each df to appropriate parquet file in tmp with good name
+        #path structure is 'tablename/tablename__[#version]__date_last_updated.parquet'
+        #find_path should generate it
+        path=find_path(tablename)
+        process_dataframes[tablename].to_parquet('/tmp/'+path)
+    #upload tmp to the processed bucket
+    #to be written
     
 def list_tablenames_from_s3(bucket_name: str) -> list[str]:
     """
@@ -24,17 +33,35 @@ def list_tablenames_from_s3(bucket_name: str) -> list[str]:
         return []
     return list(set([item["Key"].split('/')[0] for item in response["Contents"]]))
 
-def process_dataframes(dataframes):
-    df_fact_sales_order=utils_fact_sales_order(df_sales_order)
 
-    df_dim_date=utils_dim_date(df_sales_order) #needs date_expander util
+def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
+    """
+    Process a dictionary of pandas dataframes representing all tables in the original database.
+    
+    Args:
+    - dataframes (Dict[str, pd.DataFrame]): A dictionary where keys represent table names and values are the corresponding pandas dataframes.
+    
+    Returns:
+    - processed_df_dict (Dict[str, pd.DataFrame]): A dictionary containing processed pandas dataframes with keys being the process table names.
+    
+    The function processes each dataframe using our transformation functions and stores them in a dictionary.
+    The keys of the resulting dictionary correspond to the processed table names, and the values are the processed dataframes.
+    The processed table names are: 'fact_sales_order', 'dim_date', 'dim_counterparty', 'dim_staff', 'dim_currency',
+    'dim_design', and 'dim_location'.
+    """
+    processed_df_dict={}
 
-    df_dim_counterparty=utils_dim_counterparty(df_counterparty)
+    #transform_ functions need to be replaced with our actual transformation functions
+    processed_df_dict['fact_sales_order']=transform_fact_sales_order(dataframes['sales_order'])
+    processed_df_dict['dim_date']=transform_dim_date(dataframes['sales_order'])
+    processed_df_dict['dim_counterparty']=transform_fact_sales_order(dataframes['counterparty'],dataframes['address'])
+    processed_df_dict['dim_staff']=transform_fact_sales_order(dataframes['staff'],dataframes['department'])
+    processed_df_dict['dim_currency']=transform_fact_sales_order(dataframes['currency'])
+    processed_df_dict['dim_design']=transform_fact_sales_order(dataframes['design'])
+    processed_df_dict['dim_location']=transform_fact_sales_order(dataframes['location'])
+    #add more transformations here if we go beyond MVP
+    return processed_df_dict
 
-    df_dim_staff=utils_dim_staff(df_staff,df_department)
-
-    df_dim_currency=utils_dim_currency(df_currency) #needs currency code converter util
-
-    df_dim_desing=utils_dim_design(df_design)
-
-    df_dim_location=utils_dim_location(df_address)
+def find_path(tablename):
+    #to be written
+    pass
