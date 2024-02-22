@@ -4,10 +4,9 @@ from botocore.exceptions import ClientError
 from pg8000.native import Connection
 from pg8000 import DatabaseError
 from lambda_functions.extraction_lambda import save_db_to_csv
-from dotenv import load_dotenv
-import os
-from lambda_functions.utils.extract_secrets import get_secret
-from lambda_functions.utils.utils import WrongFilesIngestionBucket
+from utils.extract_secrets import get_secret
+from utils.file_reading_utils import WrongFilesIngestionBucket
+
 BUCKET_NAME = "data-detox-ingestion-bucket"
 
 
@@ -24,11 +23,11 @@ def connect():
     secret_dict = get_secret()
     try:
         conn = Connection(
-            host=secret_dict['Hostname'],
-            user=secret_dict['Username'],
-            password=secret_dict['Password'],
-            database=secret_dict['Database_name'],
-            port=secret_dict['Port']
+            host=secret_dict["Hostname"],
+            user=secret_dict["Username"],
+            password=secret_dict["Password"],
+            database=secret_dict["Database_name"],
+            port=secret_dict["Port"],
         )
         return conn
     except:
@@ -54,8 +53,7 @@ def lambda_handler(event, context):
         s3 = boto3.client("s3")
         for path in csv_paths:
             try:
-                s3.upload_file(
-                    Filename=f"/tmp/{path}", Bucket=BUCKET_NAME, Key=path)
+                s3.upload_file(Filename=f"/tmp/{path}", Bucket=BUCKET_NAME, Key=path)
             except FileNotFoundError:
                 tab_name = path.split("__")[0]
                 logger.info(f"No rows added or modified to table {tab_name}")
@@ -76,7 +74,9 @@ def lambda_handler(event, context):
         if c.response["Error"]["Code"] == "NoSuchBucket":
             logger.error(f"No such bucket - {BUCKET_NAME}")
     except WrongFilesIngestionBucket:
-        logger.error('A file with the wrong name format was put in the ingestion bucket. Please remove it to continue execution.')
+        logger.error(
+            "A file with the wrong name format was put in the ingestion bucket. Please remove it to continue execution."
+        )
         raise RuntimeError
     except Exception as e:
         logger.error(e)

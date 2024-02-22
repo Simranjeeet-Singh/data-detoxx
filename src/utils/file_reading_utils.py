@@ -1,5 +1,5 @@
 import boto3
-from src.utils.date_utils import (
+from utils.date_utils import (
     convert_utc_to_sql_timestamp,
 )
 import pandas as pd
@@ -101,7 +101,7 @@ def get_dataframe_from_s3(
     table_name: str,
     counter_start: int = None,
     counter_end: int = None,
-) -> pd.DataFrame | None:
+) -> pd.DataFrame:
     """
     !!!!!!!!!!!!COUNTER NOT WORKING YET!!!!!!!!!!!!
 
