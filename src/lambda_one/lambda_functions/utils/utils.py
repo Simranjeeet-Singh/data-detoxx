@@ -4,6 +4,8 @@ from src.lambda_code.lambda_functions.utils.date_utils import (
 )
 import pandas as pd
 
+class WrongFilesIngestionBucket(Exception):
+    pass
 
 def return_latest_counter_and_timestamp_from_filenames(
     target_table_name: str, filenames: list[str]
@@ -26,13 +28,16 @@ def return_latest_counter_and_timestamp_from_filenames(
 
     # Extract counter and timestamp from filenames into dict
     for filename in filenames:
-        table_name, counter, datetime = filename.split("__")
-        counter = int(counter.strip("[]").replace("#", ""))
-        if table_name == target_table_name:
-            if counter in counter_timestamp_dict:
-                raise ValueError("Duplicate counter values exist in filenames")
-            else:
-                counter_timestamp_dict[counter] = datetime
+        try:
+            table_name, counter, datetime = filename.split("__")
+            counter = int(counter.strip("[]").replace("#", ""))
+            if table_name == target_table_name:
+                if counter in counter_timestamp_dict:
+                    raise ValueError("Duplicate counter values exist in filenames")
+                else:
+                    counter_timestamp_dict[counter] = datetime
+        except ValueError:
+            raise WrongFilesIngestionBucket
 
     largest_counter = max(counter_timestamp_dict.keys())
     sql_datetime = convert_utc_to_sql_timestamp(

@@ -6,7 +6,11 @@ resource "aws_iam_policy" "s3_rw_policy" {
   description = "Read,Write premissions for lambda"
   policy      = data.aws_iam_policy_document.s3_rw_policy.json
 }
-
+resource "aws_iam_policy" "s3_rw_policy_processed" {
+  name        = "s3-rw-policy-${var.processed_storage}"
+  description = "Read, Write premissions to processed bucket for lambda"
+  policy      = data.aws_iam_policy_document.s3_rw_policy_processed.json
+}
 
 #Read and Write permission statements for data-detox s3 bucket
 data "aws_iam_policy_document" "s3_rw_policy" {
@@ -35,14 +39,43 @@ data "aws_iam_policy_document" "s3_rw_policy" {
       "arn:aws:s3:::${var.ingestion_storage}/*"
     ]
   }
-}
+ }
+#PROCESSED bucket rw policy
+data "aws_iam_policy_document" "s3_rw_policy_processed" {
+  version = "2012-10-17"
 
+  statement {
+    sid    = "ListObjectsInBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.processed_storage}"
+    ]
+  }
+
+  statement {
+    sid    = "AllObjectActions"
+    effect = "Allow"
+
+    actions = [
+      "s3:*Object"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.processed_storage}/*"
+    ]
+  }
+}
 # Create Cloudwatch log group
 resource "aws_cloudwatch_log_group" "cw_log_group" {
   name = "/aws/lambda/${aws_lambda_function.s3_file_reader.function_name}"
-  #   "/aws/lambda/${aws_lambda_function.demo_lambda.function_name}"
 }
-
+# Lambda 2
+resource "aws_cloudwatch_log_group" "cw_log_group_2" {
+  name = "/aws/lambda/${aws_lambda_function.s3_processor.function_name}"
+}
 # Create Cloudwatch logging policy
 resource "aws_iam_policy" "function_logging_policy" {
   name = "function-logging-policy"
@@ -67,7 +100,12 @@ resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment" {
   role       = aws_iam_role.lambda_one_role.id
   policy_arn = aws_iam_policy.function_logging_policy.arn
 }
-
+#Lambda 2
+resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment_2" {
+  depends_on = [aws_lambda_function.s3_processor]
+  role       = aws_iam_role.lambda_two_role.id
+  policy_arn = aws_iam_policy.function_logging_policy.arn
+}
 
 resource "aws_iam_policy" "lambda_secrets_policy" {
   name        = "lambda_secrets_policy"
@@ -87,4 +125,15 @@ resource "aws_iam_policy" "lambda_secrets_policy" {
 resource "aws_iam_role_policy_attachment" "lambda_secret_manager_attachment" {
   role       = aws_iam_role.lambda_one_role.name
   policy_arn = aws_iam_policy.lambda_secrets_policy.arn
+}
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = aws_s3_bucket.ingestion_bucket.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.s3_processor.arn
+    events              = ["s3:ObjectCreated:*"]
+  }
+
+  depends_on = [aws_lambda_permission.allow_s3]
 }

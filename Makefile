@@ -11,7 +11,7 @@ PYTHONPATH=${WD}
 SHELL := /bin/bash
 PROFILE = default
 PIP:=pip
-LAMBDA_ONE_PATH="$(WD)/src/lambda_code"
+LAMBDA_ONE_PATH="$(WD)/src/lambda_one"
 MOTO = 'moto[ec2,s3,all]'
 
 ## Create python interpreter environment.

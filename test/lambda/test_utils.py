@@ -1,5 +1,5 @@
 from unittest.mock import patch, MagicMock
-from src.lambda_code.lambda_functions.utils.utils import (
+from src.lambda_one.lambda_functions.utils.utils import (
     return_latest_counter_and_timestamp_from_filenames as rcat,
     list_files_from_s3,
 )

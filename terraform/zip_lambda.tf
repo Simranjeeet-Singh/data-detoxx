@@ -1,6 +1,6 @@
 resource "null_resource" "install_dependencies" {
   provisioner "local-exec" {
-    command = "pip install -r ${path.module}/../src/lambda_code/lambda_requirements.txt -t ${path.module}/../tmp/dependencies/python"
+    command = "pip install -r ${path.module}/../src/lambda_one/lambda_requirements.txt -t ${path.module}/../tmp/dependencies/python"
   }
   triggers = {
   always_run = timestamp()
@@ -22,5 +22,12 @@ data "archive_file" "lambda_one_zip" {
   depends_on = [data.archive_file.lambda_dependencies_zip]
   type             = "zip"
   output_path      = "${path.module}/../tmp/lambda_one.zip"
-  source_dir       = "${path.module}/../src/lambda_code"
+  source_dir       = "${path.module}/../src/lambda_one"
+}
+
+data "archive_file" "lambda_two_zip" {
+  depends_on = [data.archive_file.lambda_dependencies_zip]
+  type             = "zip"
+  output_path      = "${path.module}/../tmp/lambda_two.zip"
+  source_dir       = "${path.module}/../src/lambda_two"
 }
