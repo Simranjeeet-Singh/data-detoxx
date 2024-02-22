@@ -1,11 +1,13 @@
 import boto3
-from src.lambda_code.lambda_functions.utils.date_utils import (
+from src.utils.date_utils import (
     convert_utc_to_sql_timestamp,
 )
 import pandas as pd
 
+
 class WrongFilesIngestionBucket(Exception):
     pass
+
 
 def return_latest_counter_and_timestamp_from_filenames(
     target_table_name: str, filenames: list[str]

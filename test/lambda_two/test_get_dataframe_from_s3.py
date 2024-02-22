@@ -2,7 +2,8 @@ import pytest
 import pandas as pd
 from moto import mock_aws
 import boto3
-from src.lambda_code.lambda_functions.utils.utils import get_dataframe_from_s3
+
+from src.utils.utils import get_dataframe_from_s3
 
 
 BUCKET_NAME = "test-bucket"
