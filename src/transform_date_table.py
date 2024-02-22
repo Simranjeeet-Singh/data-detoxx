@@ -4,20 +4,30 @@ import pandas as pd
 
 
 def transform_date_table(sales_order_df: pd.DataFrame) -> pd.DataFrame:
-    # from sales_order_df I want to take created_date, laste_updated_date, agreed_delivery_date and agreed_payment_date values and use them as keys in dim_date_table and then use extract_date function to populate the rest of the rows
+    """
+    Transforms a DataFrame containing sales order data by extracting and 
+    structuring date information from specified date columns. 
 
-    # currency_df['currency_name'] = currency_df['currency_code'].apply(cccn)
+    Parameters:
+    - `sales_order_df`: The input DataFrame containing sales order data with multiple date-related columns.
+
+    Returns:
+    - `pd.DataFrame`: A new DataFrame where each row corresponds to a unique date extracted from the input DataFrame.
+    """
 
     date_df = pd.DataFrame([])
 
-    # df[['age', 'gender']] = df['info'].apply(lambda x: pd.Series(extract_values(x)))
+    columns_of_interest = ['created_at', 'last_updated',
+                           'agreed_delivery_date', 'agreed_payment_date']
+
+    columns_to_process = [
+        col for col in columns_of_interest if col in sales_order_df.columns]
+
+    melted_df = pd.melt(
+        sales_order_df, value_vars=columns_to_process, value_name='date')
 
     date_df[['date_id', 'year', 'month', 'day', 'day_of_week',
-            'day_name', 'month_name', 'quarter']] = sales_order_df['created_date'].apply(
+            'day_name', 'month_name', 'quarter']] = melted_df['date'].apply(
         lambda x: pd.Series(extract_date(x)))
-    date_df.loc[len(date_df)] = date_df.loc[0]
 
-    # date_df['date_id'] = sales_order_df['created_date'].apply(extract_date)
-
-    return date_df
-# .drop_duplicates()
+    return date_df.drop_duplicates()
