@@ -29,16 +29,25 @@ def precision_changer(num : float) -> float:
         integer=99999999
     return float(f'{integer}.{decimal}')
 
-def fact_sales_transformer(df_sales_order : pd.DataFrame) -> pd.DataFrame:
+def fact_sales_transformer(df_sales_order : pd.DataFrame, last_serial_key: int) -> pd.DataFrame:
     '''
-    
+    This function processes the sales order data DataFrame by performing the following steps:
+    1. Extracts and transforms 'created_at' and 'last_updated' columns into separate 'created_date',
+       'created_time', 'last_updated_date', and 'last_updated_time' columns.
+    2. Applies precision change to the 'unit_price' column.
+    3. Selects specific columns from the original DataFrame.
+    4. Joins the transformed 'created_cols', 'updated_cols', and 'unit_price' to the selected columns.
+    5. Inserts a new column 'sales_record_id' with unique identifiers, starting from last_serial_key.
+    6. Sets 'sales_record_id' as the index of the DataFrame.
+    7. Renames the 'staff_id' column to 'sales_staff_id'.
+    8. Rearranges the columns order as specified.
     '''
     created_cols=df_sales_order['created_at'].apply(lambda x: pd.Series(sales_dt_transform(x),index=['created_date', 'created_time']))
     updated_cols=df_sales_order['last_updated'].apply(lambda x: pd.Series(sales_dt_transform(x),index=['last_updated_date', 'last_updated_time']))
     unit_price = df_sales_order['unit_price'].apply(precision_changer)
     df_fact_sales=df_sales_order[['sales_order_id','staff_id','counterparty_id','units_sold','currency_id','design_id','agreed_delivery_location_id','agreed_payment_date','agreed_delivery_date']]
     df_fact_sales=df_fact_sales.join([created_cols,updated_cols,unit_price])
-    df_fact_sales.insert(0,'sales_record_id',range(1,1+len(df_fact_sales)))
+    df_fact_sales.insert(0,'sales_record_id',range(last_serial_key,last_serial_key+len(df_fact_sales)))
     df_fact_sales.index=df_fact_sales.loc[:,'sales_record_id'].values
     df_fact_sales=df_fact_sales.rename(columns={'staff_id':'sales_staff_id'})
     # Rearrange columns order
