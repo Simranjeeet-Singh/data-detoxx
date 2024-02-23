@@ -1,6 +1,4 @@
-from datetime import datetime
-from utils.date_utils import convert_datetime_to_utc
-def path_to_parquet(table_name: str, counter: int) -> str:
+def path_to_parquet(table_name: str, counter: int, last_updated: str) -> str:
     """
     Generates a file path for storing a Parquet file.
 
@@ -15,5 +13,4 @@ def path_to_parquet(table_name: str, counter: int) -> str:
             {counter} is the version or counter value,
             and {date} is the current UTC datetime converted to string.
     """
-    date = convert_datetime_to_utc(datetime.now())
-    return f"{table_name}/{table_name}__[#{counter}]__{date}.parquet"
+    return f"{table_name}/{table_name}__[#{counter}]__{last_updated}.parquet"
