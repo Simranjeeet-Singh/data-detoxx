@@ -1,6 +1,7 @@
 import pandas as pd
-
-import currency_code_to_currency_name as cccn
+from lambda_two.lambda_functions.currency_code_to_currency_name import (
+    currency_code_to_currency_name as cccn,
+)
 
 
 def transform_currency_table(currency_df: pd.DataFrame) -> pd.DataFrame:

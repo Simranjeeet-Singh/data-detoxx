@@ -103,6 +103,12 @@ all: delete-venv check_and_install_python_version requirements dev-setup run-che
 delete-venv:
 	rm -rf venv
 
+## Delete pycache
+clean:
+	@echo "Cleaning up Python __pycache__ directories..."
+	@find . -type d -name '__pycache__' -exec rm -rf {} +
+	@echo "Cleanup complete."
+
 ## Create new project venv from project_primary_dependencies and builds new requirements.txt file
 new-project-requirements: delete-venv create-environment
 	$(call execute_in_env, $(PIP) install -r project_primary_dependencies.txt)

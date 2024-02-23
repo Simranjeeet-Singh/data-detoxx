@@ -1,6 +1,4 @@
-from utils.join_data_frames import left_join_df
-from utils.join_data_frames import column_filter
-
+from utils.join_data_frames import left_join_df, column_filter
 import pandas as pd
 import pytest
 
