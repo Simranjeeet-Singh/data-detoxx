@@ -43,7 +43,7 @@ def return_latest_counter_and_timestamp_from_filenames(
 
     largest_counter = max(counter_timestamp_dict.keys())
     sql_datetime = convert_utc_to_sql_timestamp(
-        counter_timestamp_dict[largest_counter].strip(".csv")
+        counter_timestamp_dict[largest_counter].strip(".csv").strip(".parquet")
     )
     return (largest_counter, sql_datetime)
 
@@ -137,6 +137,22 @@ def get_dataframe_from_s3(
     concatenated_df = pd.concat(dfs, ignore_index=True)
     return concatenated_df
 
+def path_to_parquet(table_name: str, counter: int, last_updated: str) -> str:
+    """
+    Generates a file path for storing a Parquet file.
+
+    Args:
+        `table_name`: The name of the table.
+        `counter`: An integer counter for versioning or distinguishing files.
+
+    Returns:
+        `str`: A string representing the file path in the format:
+            "{table_name}/{table_name}__[#{counter}]__{date}.parquet"
+            where {table_name} is the name of the table,
+            {counter} is the version or counter value,
+            and {date} is the current UTC datetime converted to string.
+    """
+    return f"{table_name}/{table_name}__[#{counter}]__{last_updated}.parquet"
 
 if __name__ == "__main__":
     # filenames = ["mytable_[#1]_2009-08-08T121800Z", "mytable_[#2]_2009-08-08T1218020Z"]

@@ -1,7 +1,7 @@
 import logging
 import boto3
 import pandas as pd
-from utils.file_reading_utils import list_files_from_s3
+from utils.file_reading_utils import list_files_from_s3, return_latest_counter_and_timestamp_from_filenames, path_to_parquet
 #TBD: import all transformation functions
 
 def lambda_handler2(event, context):
@@ -9,22 +9,20 @@ def lambda_handler2(event, context):
         s3 = boto3.client("s3")
         logger = logging.getLogger("MyLogger")
         logger.setLevel(logging.INFO)
-        tablenames=list(set([element.split('__')[0] for element in list_files_from_s3('data-detox-processed-bucket')]))
+        tables_ingestion=list_files_from_s3('data-detox-ingestion-bucket')
+        tablenames_ingestion=list(set([element.split('__')[0] for element in tables_ingestion ]))
         dataframes={}
-        for tablename in tablenames:
+        for tablename in tablenames_ingestion:
             if tablename=='department' or tablename=='counterparty':
-                df=''#read all csvs for that table
+                df='' #read all csvs for that table
             else:
                 df='' #read only last updates via john_function('data-detox-ingestion-bucket', tablename)
-                dataframes[tablename]=df
+            dataframes[tablename]=df
         #dataframes is a dictionary containining all dataframes with the last updated/added data 
         processed_dataframes=process_dataframes(dataframes)
-        for tablename in process_dataframes.keys():
-            #save each df to appropriate parquet file in tmp with good name
-            #path structure is 'tablename/tablename__[#version]__date_last_updated.parquet'
-            #find_path should generate it
-            path=find_path(tablename)
-            process_dataframes[tablename].to_parquet('/tmp/'+path,index=False)
+        for tablename in processed_dataframes.keys():
+            path=find_path(tablename, tables_ingestion) 
+            processed_dataframes[tablename].to_parquet('/tmp/'+path,index=False) #might need pyarrow for this, check if we need it on aws layer or not
             try:
                 s3.upload_file(Filename=f"/tmp/{path}", Bucket='data-detox-processed-bucket', Key=path)
             except FileNotFoundError:
@@ -51,7 +49,7 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     """
     processed_df_dict={}
 
-    #transform_ functions need to be replaced with our actual transformation functions
+    # transform_ functions need to be replaced with our actual transformation functions
     # processed_df_dict['fact_sales_order']=transform_fact_sales_order(dataframes['sales_order'])
     # processed_df_dict['dim_date']=transform_dim_date(dataframes['sales_order'])
     # processed_df_dict['dim_counterparty']=transform_fact_sales_order(dataframes['counterparty'],dataframes['address'])
@@ -59,12 +57,13 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     # processed_df_dict['dim_currency']=transform_fact_sales_order(dataframes['currency'])
     # processed_df_dict['dim_design']=transform_fact_sales_order(dataframes['design'])
     # processed_df_dict['dim_location']=transform_fact_sales_order(dataframes['location'])
-    #add more transformations here if we go beyond MVP
+    # add more transformations here if we go beyond MVP
     return processed_df_dict
 
-def find_path(tablename):
-    #to be written
-    pass
+def find_path(tablename, all_tables_files):
+    tablename_files=[element.split('/')[-1] for element in all_tables_files if element.split('/')[0]==tablename]
+    counter, date =return_latest_counter_and_timestamp_from_filenames(tablename,tablename_files)
+    return path_to_parquet(tablename, counter, date)
 
 if __name__=='__main__':
     lambda_handler2('test','test')
