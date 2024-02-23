@@ -1,12 +1,13 @@
 import logging
 import boto3
 import pandas as pd
+from src.utils.file_reading_utils import list_files_from_s3
 #TBD: import all transformation functions
 
 def lambda_handler2(event, context):
     logger = logging.getLogger("MyLogger")
     logger.setLevel(logging.INFO)
-    tablenames=list_tablenames_from_s3('data-detox-ingestion-bucket')
+    tablenames=list(set([element.split('__')[0] for element in list_files_from_s3('data-detox-processed-bucket')]))
     dataframes={}
     for tablename in tablenames:
         if tablename=='department' or tablename=='counterparty':
@@ -24,18 +25,6 @@ def lambda_handler2(event, context):
         process_dataframes[tablename].to_parquet('/tmp/'+path)
     #upload tmp to the processed bucket
     #to be written
-    
-def list_tablenames_from_s3(bucket_name: str) -> list[str]:
-    """
-    Args : bucket_name as a `string` \n
-    Returns : list of table names inside the bucket as `list` of `strings`
-    """
-    client = boto3.client("s3")
-    response = client.list_objects(Bucket=bucket_name)
-    if "Contents" not in response:
-        return []
-    return list(set([item["Key"].split('/')[0] for item in response["Contents"]]))
-
 
 def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     """
@@ -55,17 +44,20 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     processed_df_dict={}
 
     #transform_ functions need to be replaced with our actual transformation functions
-    processed_df_dict['fact_sales_order']=transform_fact_sales_order(dataframes['sales_order'])
-    processed_df_dict['dim_date']=transform_dim_date(dataframes['sales_order'])
-    processed_df_dict['dim_counterparty']=transform_fact_sales_order(dataframes['counterparty'],dataframes['address'])
-    processed_df_dict['dim_staff']=transform_fact_sales_order(dataframes['staff'],dataframes['department'])
-    processed_df_dict['dim_currency']=transform_fact_sales_order(dataframes['currency'])
-    processed_df_dict['dim_design']=transform_fact_sales_order(dataframes['design'])
-    processed_df_dict['dim_location']=transform_fact_sales_order(dataframes['location'])
+    # processed_df_dict['fact_sales_order']=transform_fact_sales_order(dataframes['sales_order'])
+    # processed_df_dict['dim_date']=transform_dim_date(dataframes['sales_order'])
+    # processed_df_dict['dim_counterparty']=transform_fact_sales_order(dataframes['counterparty'],dataframes['address'])
+    # processed_df_dict['dim_staff']=transform_fact_sales_order(dataframes['staff'],dataframes['department'])
+    # processed_df_dict['dim_currency']=transform_fact_sales_order(dataframes['currency'])
+    # processed_df_dict['dim_design']=transform_fact_sales_order(dataframes['design'])
+    # processed_df_dict['dim_location']=transform_fact_sales_order(dataframes['location'])
     #add more transformations here if we go beyond MVP
     return processed_df_dict
 
 def find_path(tablename):
     #to be written
     pass
+
+if __name__=='__main__':
+    lambda_handler2('test','test')
 
