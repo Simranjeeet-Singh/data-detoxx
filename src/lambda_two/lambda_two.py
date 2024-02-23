@@ -1,7 +1,6 @@
 import logging
 import boto3
 import pandas as pd
-from src.lambda_one.lambda_functions.utils.extract_secrets import get_secret
 #TBD: import all transformation functions
 
 def lambda_handler2(event, context):
