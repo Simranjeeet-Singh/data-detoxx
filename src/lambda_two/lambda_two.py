@@ -69,4 +69,3 @@ def find_path(tablename):
     #to be written
     pass
 
-print(get_secret())

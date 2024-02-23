@@ -25,12 +25,12 @@ def set_up():
         s3_client.put_object(
             Bucket=bucket_name,
             Key=table_name1 + "/file1.csv",
-            Body='pippo',
+            Body="pippo",
         )
         s3_client.put_object(
             Bucket=bucket_name,
             Key=table_name2 + "/file2.csv",
-            Body='baudo',
+            Body="baudo",
         )
         yield  # Need yield to prevent teardown
 
@@ -41,7 +41,8 @@ def test_list_tablenames_from_s3_single_file_per_table(set_up):
     tablenames = list_tablenames_from_s3(BUCKET_NAME)
 
     # Assert that tablenames contains all table names in bucket. Set is to make sure that order does not matter
-    assert set(tablenames)==set(['test_table1','test_table2'])
+    assert set(tablenames) == set(["test_table1", "test_table2"])
+
 
 @pytest.fixture()
 def set_up_2():
@@ -60,29 +61,30 @@ def set_up_2():
         s3_client.put_object(
             Bucket=bucket_name,
             Key=table_name1 + "/file1.csv",
-            Body='pippo',
+            Body="pippo",
         )
         s3_client.put_object(
             Bucket=bucket_name,
             Key=table_name1 + "/file2.csv",
-            Body='pippo',
+            Body="pippo",
         )
         s3_client.put_object(
             Bucket=bucket_name,
             Key=table_name2 + "/file2.csv",
-            Body='baudo',
+            Body="baudo",
         )
         s3_client.put_object(
             Bucket=bucket_name,
             Key=table_name2 + "/file3.csv",
-            Body='baudo',
+            Body="baudo",
         )
         s3_client.put_object(
             Bucket=bucket_name,
-            Key='paperino' + "/file3.csv",
-            Body='baudo',
+            Key="paperino" + "/file3.csv",
+            Body="baudo",
         )
         yield  # Need yield to prevent teardown
+
 
 def test_list_tablenames_from_s3_multiple_files_per_table(set_up_2):
     # Call the function under test
@@ -90,4 +92,4 @@ def test_list_tablenames_from_s3_multiple_files_per_table(set_up_2):
     tablenames = list_tablenames_from_s3(BUCKET_NAME)
 
     # Assert that tablenames contains all table names in bucket. Set is to make sure that order does not matter
-    assert set(tablenames)==set(['test_table1','test_table2','paperino'])
+    assert set(tablenames) == set(["test_table1", "test_table2", "paperino"])
