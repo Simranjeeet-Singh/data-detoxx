@@ -4,10 +4,8 @@ from botocore.exceptions import ClientError
 from pg8000.native import Connection
 from pg8000 import DatabaseError
 from lambda_functions.extraction_lambda import save_db_to_csv
-from dotenv import load_dotenv
-import os
-from lambda_functions.utils.extract_secrets import get_secret
-from lambda_functions.utils.utils import WrongFilesIngestionBucket
+from utils.extract_secrets import get_secret
+from utils.file_reading_utils import WrongFilesIngestionBucket
 
 BUCKET_NAME = "data-detox-ingestion-bucket"
 
