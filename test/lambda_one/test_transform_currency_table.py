@@ -1,4 +1,6 @@
-from src.transform_currency_table import transform_currency_table as tct
+from lambda_two.lambda_functions.transform_currency_table import (
+    transform_currency_table as tct,
+)
 
 import pandas as pd
 

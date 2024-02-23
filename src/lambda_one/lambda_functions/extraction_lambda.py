@@ -1,12 +1,13 @@
 from pg8000.native import Connection, identifier, literal
 import pandas as pd
 from datetime import datetime
-from lambda_functions.utils.date_utils import convert_datetime_to_utc
-from lambda_functions.utils.utils import (
+from pathlib import Path
+
+from utils.date_utils import convert_datetime_to_utc
+from utils.file_reading_utils import (
     list_files_from_s3,
     return_latest_counter_and_timestamp_from_filenames,
 )
-from pathlib import Path
 
 
 def extract_tablenames(conn: Connection) -> list[str]:
