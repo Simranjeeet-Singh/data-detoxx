@@ -1,6 +1,6 @@
 from unittest.mock import patch
 import pytest
-from src.utils.file_reading_utils import (
+from utils.file_reading_utils import (
     return_latest_counter_and_timestamp_from_filenames as rcat,
     list_files_from_s3,
 )

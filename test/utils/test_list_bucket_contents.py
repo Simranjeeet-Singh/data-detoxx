@@ -1,4 +1,4 @@
-from src.utils.file_reading_utils import list_files_from_s3
+from utils.file_reading_utils import list_files_from_s3
 import boto3
 from moto import mock_aws
 

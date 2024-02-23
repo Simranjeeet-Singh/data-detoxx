@@ -1,4 +1,4 @@
-from src.extract_date import extract_date
+from utils.extract_date import extract_date
 
 
 def test_correctly_returns_year_month_day_from_timestamp():

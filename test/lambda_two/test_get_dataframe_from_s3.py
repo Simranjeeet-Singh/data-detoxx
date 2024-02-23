@@ -3,7 +3,7 @@ import pandas as pd
 from moto import mock_aws
 import boto3
 
-from src.utils.file_reading_utils import get_dataframe_from_s3
+from utils.file_reading_utils import get_dataframe_from_s3
 
 
 BUCKET_NAME = "test-bucket"

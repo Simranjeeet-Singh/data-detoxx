@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 
-from src.utils.date_utils import (
+from utils.date_utils import (
     convert_datetime_to_utc,
     convert_utc_to_sql_timestamp,
     convert_sql_timestamp_to_utc,

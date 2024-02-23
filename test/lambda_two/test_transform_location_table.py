@@ -1,4 +1,6 @@
-from src.transform_location_table import transform_location_table as tlt
+from lambda_two.lambda_functions.transform_location_table import (
+    transform_location_table as tlt,
+)
 import pandas as pd
 
 

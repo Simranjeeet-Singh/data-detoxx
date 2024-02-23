@@ -1,4 +1,4 @@
-from src.transform_date_table import transform_date_table as tdt
+from lambda_two.lambda_functions.transform_date_table import transform_date_table as tdt
 
 import pandas as pd
 

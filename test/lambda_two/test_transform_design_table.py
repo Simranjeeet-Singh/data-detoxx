@@ -1,4 +1,6 @@
-from src.transform_design_table import transform_design_table as tdt
+from lambda_two.lambda_functions.transform_design_table import (
+    transform_design_table as tdt,
+)
 import pandas as pd
 
 
