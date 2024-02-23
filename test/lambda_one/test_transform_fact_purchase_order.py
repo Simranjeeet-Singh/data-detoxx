@@ -96,6 +96,20 @@ def test_returns_correct_column_headers():
     input = pd.DataFrame(data)
     output = tfpo(input)
 
-    print(output.columns.tolist())
-
-    assert output.columns.tolist() == ['purchase_record_id', 'purchase_order_id', 'staff_id', 'counterparty_id', 'item_code', 'item_quantity', 'item_unit_price', 'currency_id', 'agreed_delivery_date', 'agreed_payment_date', 'agreed_delivery_location_id', 'created_date', 'created_time', 'last_updated_date', 'last_updated_time']
+    assert output.columns.tolist() == [
+        "purchase_record_id",
+        "purchase_order_id",
+        "staff_id",
+        "counterparty_id",
+        "item_code",
+        "item_quantity",
+        "item_unit_price",
+        "currency_id",
+        "agreed_delivery_date",
+        "agreed_payment_date",
+        "agreed_delivery_location_id",
+        "created_date",
+        "created_time",
+        "last_updated_date",
+        "last_updated_time",
+    ]
