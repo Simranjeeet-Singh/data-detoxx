@@ -22,11 +22,13 @@ def extract_date(timestamp: str) -> dict:
 
     dt = datetime.strptime(timestamp[:10], "%Y-%m-%d").date()
 
-    return {'date': dt.strftime("%Y-%m-%d"),
-            'year': dt.year,
-            'month': dt.month,
-            'day': dt.day,
-            'day_of_week': dt.weekday(),
-            'day_name': calendar.day_name[dt.weekday()],
-            'month_name': calendar.month_name[dt.month],
-            'quarter': (dt.month - 1) // 3 + 1}
+    return {
+        "date": dt.strftime("%Y-%m-%d"),
+        "year": dt.year,
+        "month": dt.month,
+        "day": dt.day,
+        "day_of_week": dt.weekday(),
+        "day_name": calendar.day_name[dt.weekday()],
+        "month_name": calendar.month_name[dt.month],
+        "quarter": (dt.month - 1) // 3 + 1,
+    }
