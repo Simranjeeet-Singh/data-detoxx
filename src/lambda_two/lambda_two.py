@@ -1,30 +1,38 @@
 import logging
 import boto3
 import pandas as pd
-from src.utils.file_reading_utils import list_files_from_s3
+from utils.file_reading_utils import list_files_from_s3
 #TBD: import all transformation functions
 
 def lambda_handler2(event, context):
-    logger = logging.getLogger("MyLogger")
-    logger.setLevel(logging.INFO)
-    tablenames=list(set([element.split('__')[0] for element in list_files_from_s3('data-detox-processed-bucket')]))
-    dataframes={}
-    for tablename in tablenames:
-        if tablename=='department' or tablename=='counterparty':
-            df=''#read all csvs for that table
-        else:
-            df='' #read only last updates via john_function('data-detox-ingestion-bucket', tablename)
-            dataframes[tablename]=df
-    #dataframes is a dictionary containining all dataframes with the last updated/added data 
-    processed_dataframes=process_dataframes(dataframes)
-    for tablename in process_dataframes.keys():
-        #save each df to appropriate parquet file in tmp with good name
-        #path structure is 'tablename/tablename__[#version]__date_last_updated.parquet'
-        #find_path should generate it
-        path=find_path(tablename)
-        process_dataframes[tablename].to_parquet('/tmp/'+path)
-    #upload tmp to the processed bucket
-    #to be written
+    try:
+        s3 = boto3.client("s3")
+        logger = logging.getLogger("MyLogger")
+        logger.setLevel(logging.INFO)
+        tablenames=list(set([element.split('__')[0] for element in list_files_from_s3('data-detox-processed-bucket')]))
+        dataframes={}
+        for tablename in tablenames:
+            if tablename=='department' or tablename=='counterparty':
+                df=''#read all csvs for that table
+            else:
+                df='' #read only last updates via john_function('data-detox-ingestion-bucket', tablename)
+                dataframes[tablename]=df
+        #dataframes is a dictionary containining all dataframes with the last updated/added data 
+        processed_dataframes=process_dataframes(dataframes)
+        for tablename in process_dataframes.keys():
+            #save each df to appropriate parquet file in tmp with good name
+            #path structure is 'tablename/tablename__[#version]__date_last_updated.parquet'
+            #find_path should generate it
+            path=find_path(tablename)
+            process_dataframes[tablename].to_parquet('/tmp/'+path,index=False)
+            try:
+                s3.upload_file(Filename=f"/tmp/{path}", Bucket='data-detox-processed-bucket', Key=path)
+            except FileNotFoundError:
+                tab_name = path.split("__")[0]
+                logger.info(f"No rows added or modified to table {tab_name}")
+    except Exception as e:
+        logger.error(e)
+        raise RuntimeError
 
 def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     """
