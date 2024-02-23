@@ -9,8 +9,11 @@ def lambda_handler2(event, context):
     tablenames=list_tablenames_from_s3('data-detox-ingestion-bucket')
     dataframes={}
     for tablename in tablenames:
-        df='' #john_function('data-detox-ingestion-bucket', tablename)
-        dataframes[tablename]=df
+        if tablename=='department' or tablename=='counterparty':
+            df=''#read all csvs for that table
+        else:
+            df='' #read only last updates via john_function('data-detox-ingestion-bucket', tablename)
+            dataframes[tablename]=df
     #dataframes is a dictionary containining all dataframes with the last updated/added data 
     processed_dataframes=process_dataframes(dataframes)
     for tablename in process_dataframes.keys():
