@@ -1,7 +1,7 @@
 import logging
 import boto3
 import pandas as pd
-from src.utils.file_reading_utils import list_files_from_s3
+from utils.file_reading_utils import list_files_from_s3
 #TBD: import all transformation functions
 
 def lambda_handler2(event, context):
