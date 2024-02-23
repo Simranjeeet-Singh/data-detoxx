@@ -1,4 +1,4 @@
-from src.transform_staff_table import transform_staff_table
+from lambda_two.lambda_functions.transform_staff_table import transform_staff_table
 import pandas as pd
 
 

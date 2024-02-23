@@ -1,4 +1,3 @@
-
 import pandas as pd
 
 def left_join_df(df_table_1:pd.DataFrame,df_table_2:pd.DataFrame,foreign_key_1:str,foreign_key_2='')->pd.DataFrame:
