@@ -6,7 +6,6 @@ def test_returns_an_empty_frame_when_passed_an_empty_dataframe():
     counterparty_df=pd.DataFrame()
     address_df=pd.DataFrame()
     result=dim_counterparty(counterparty_df,address_df)
-    print(result)
     assert result.columns.to_list()==[]
 
 def test_returns_the_dim_counterparty_table_when_passed_df_containing_database_counterparty_table_and_address_table():

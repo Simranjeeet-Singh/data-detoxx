@@ -77,9 +77,10 @@ def extract_counter_from_filenames(
             table_name, counter, datetime = filename.split("__")
             counter = int(counter.strip("[]").replace("#", ""))
             if target_table_name is None or table_name == target_table_name:
-                if counter in counter_timestamp_mapping:
-                    raise ValueError("Duplicate counter values exist in filenames")
-                else:
+                # if counter in counter_timestamp_mapping:
+                #     print(counter, table_name)
+                #     raise ValueError("Duplicate counter values exist in filenames")
+                # else:
                     counter_timestamp_mapping[counter] = datetime
                     counter_filename_mapping[counter] = filename
         except ValueError:

@@ -1,8 +1,9 @@
 import logging
 import boto3
 import pandas as pd
-from utils.file_reading_utils import list_files_from_s3, get_dataframe_from_s3, return_latest_counter_and_timestamp_from_filenames
-from lambda_functions.path_to_parquet import path_to_parquet
+from utils.file_reading_utils import list_files_from_s3, get_dataframe_from_s3, return_latest_counter_and_timestamp_from_filenames, path_to_parquet
+from utils.date_utils import convert_sql_timestamp_to_utc
+from pathlib import Path
 
 # Transformer functions
 from lambda_functions.fact_sales_transform import fact_sales_transformer
@@ -30,20 +31,23 @@ def lambda_handler2(event, context):
         non_updating_tables=['department', 'counterparty', 'currency', 'payment_type', 'address']
         for tablename in tablenames_ingestion:
             if tablename in non_updating_tables:
-                df=(get_dataframe_from_s3(INGESTION_BUCKET,tablename),1)
-                counters_dates=(1,'2022-11-03T142051563Z') #hardcoded random date
+                df=get_dataframe_from_s3(INGESTION_BUCKET,tablename)
+                tb_counters_dates=(1,'2022-11-03 14:20:51.563') #hardcoded random date
             else:
-                tablename_files=[element.split('/')[-1] for element in tables_ingestion if element.split('/')[0]==tablename]
-                counters_dates=return_latest_counter_and_timestamp_from_filenames(tablename_files,tablename)
-                df=get_dataframe_from_s3(INGESTION_BUCKET,tablename, counter_start=counters_dates[0])
+                tablename_files=[element for element in tables_ingestion if element.split('__')[0]==tablename]
+                tb_counters_dates=return_latest_counter_and_timestamp_from_filenames(tablename,tablename_files)
+                df=get_dataframe_from_s3(INGESTION_BUCKET,tablename, counter_start=tb_counters_dates[0])
             dataframes[tablename]=df
-            counters_dates[tablename]=counters_dates
+            counters_dates[tablename]=tb_counters_dates
         #dataframes is a dictionary containining all dataframes with the last updated/added data
         #counters_dates is a dictionary containining corresponding counters and latest dates
         processed_dataframes=process_dataframes(dataframes)
+        old_to_new_tables={'fact_sales_order':'sales_order', 'dim_date':'sales_order','dim_staff':'staff', 'dim_currency':'currency','dim_design':'design',
+                       'dim_transaction':'transaction','dim_payment_type':'payment_type','fact_purchase_order':'purchase_order','fact_payment':'payment', 'dim_counterparty':'counterparty', 'dim_location':'sales_order'}
         for tablename in processed_dataframes.keys():
-            path=path_to_parquet(tablename, counters_dates[tablename][0], counters_dates[tablename][1])
-            processed_dataframes[tablename].to_parquet('/tmp/'+path,index=False) #might need pyarrow for this, check if we need it on aws layer or not
+            path=path_to_parquet(tablename, counters_dates[old_to_new_tables[tablename]][0], convert_sql_timestamp_to_utc(counters_dates[old_to_new_tables[tablename]][1]))
+            folder_name = Path(f"/tmp/{tablename}").mkdir(parents=True, exist_ok=True)
+            processed_dataframes[tablename].to_parquet('/tmp/'+path,index=False) 
             try:
                 s3.upload_file(Filename=f"/tmp/{path}", Bucket='data-detox-processed-bucket', Key=path)
             except FileNotFoundError:
@@ -69,14 +73,15 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     'dim_design', and 'dim_location'.
     """
     processed_df_dict={}
-
     processed_df_dict['fact_sales_order']=fact_sales_transformer(dataframes['sales_order'], 1) # Second passed arguement to be confirmed
     processed_df_dict['dim_date']=transform_date_table(dataframes['sales_order'])
-    processed_df_dict['dim_counterparty']=dim_counterparty(dataframes['counterparty'], dataframes['address'])
+    # processed_df_dict['dim_counterparty']=dim_counterparty(dataframes['counterparty'], dataframes['address'])
+    #bugged
     processed_df_dict['dim_staff']=transform_staff_table(dataframes['staff'], dataframes['department'])
     processed_df_dict['dim_currency']=transform_currency_table(dataframes['currency'])
     processed_df_dict['dim_design']=transform_design_table(dataframes['design'])
-    processed_df_dict['dim_location']=transform_location_table(dataframes['location'])
+    # processed_df_dict['dim_location']=transform_location_table(dataframes['location'])
+    # there's no table location in original db, fix this
     processed_df_dict['dim_transaction']=dim_transaction(dataframes['transaction'])
     processed_df_dict['dim_payment_type']=dim_payment_type(dataframes['payment_type'])
     processed_df_dict['fact_purchase_order']=transform_fact_purchase_order(dataframes['purchase_order'])
