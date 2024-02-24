@@ -23,23 +23,13 @@ def return_latest_counter_and_timestamp_from_filenames(
         Tuple (largest_counter: int, sql_datetime: str):
         A tuple containing the largest counter and its corresponding timestamp in the following format 'YYYY-MM-DD HH:MM:SS.SSS'.
     """
-    counter_timestamp_dict = {}
 
     if not filenames:
         return 0, None
 
-    # Extract counter and timestamp from filenames into dict
-    for filename in filenames:
-        try:
-            table_name, counter, datetime = filename.split("__")
-            counter = int(counter.strip("[]").replace("#", ""))
-            if table_name == target_table_name:
-                if counter in counter_timestamp_dict:
-                    raise ValueError("Duplicate counter values exist in filenames")
-                else:
-                    counter_timestamp_dict[counter] = datetime
-        except ValueError:
-            raise WrongFilesIngestionBucket
+    counter_timestamp_dict, *discard_values = extract_counter_from_filenames(
+        filenames, target_table_name
+    )
 
     largest_counter = max(counter_timestamp_dict.keys())
     sql_datetime = convert_utc_to_sql_timestamp(
@@ -60,51 +50,50 @@ def list_files_from_s3(bucket_name: str) -> list[str]:
     return [item["Key"].split("/")[-1] for item in response["Contents"]]
 
 
-def return_counter_filename_dict_from_filenames(
-    target_table_name: str, filenames: list[str]
-) -> tuple[int, str]:
+def extract_counter_from_filenames(
+    filenames: list[str], target_table_name: str = None
+) -> tuple[dict[int, str], dict[int, str]]:
     """
-    Extracts the latest counter and corresponding timestamp from a list of filenames for a specific table.
+    Extracts counters and timestamps from a list of filenames and returns a tuple:
+
+    1. A dictionary mapping counter values to corresponding timestamps.
+    2. A dictionary mapping counter values to corresponding filenames.
 
     Args:
-        target_table_name (str): The name of the target table.
-        filenames (list[str]): A list of filenames.
+        filenames (List[str]): A list of filenames in the format 'table_name__counter__datetime'.
+        target_table_name (Optional[str]): The specific table name to filter filenames by (default is None).
 
     Returns:
-        Tuple (largest_counter: int, sql_datetime: str):
-        A tuple containing the largest counter and its corresponding timestamp in the following format 'YYYY-MM-DD HH:MM:SS.SSS'.
+        counter_timestamp_mapping, counter_filename_mapping
+
+    Raises:
+        WrongFilesIngestionBucket: If any of the filenames are not in the expected format.
+        ValueError: If duplicate counter values exist in filenames.
     """
-    counter_timestamp_dict = {}
-
-    if not filenames:
-        return 0, None
-
-    # Extract counter and timestamp from filenames into dict
+    counter_timestamp_mapping = {}
+    counter_filename_mapping = {}
     for filename in filenames:
-        table_name, counter, datetime = filename.split("__")
-        counter = int(counter.strip("[]").replace("#", ""))
-        if table_name == target_table_name:
-            if counter in counter_timestamp_dict:
-                raise ValueError("Duplicate counter values exist in filenames")
-            else:
-                counter_timestamp_dict[counter] = datetime
-
-    largest_counter = max(counter_timestamp_dict.keys())
-    sql_datetime = convert_utc_to_sql_timestamp(
-        counter_timestamp_dict[largest_counter].strip(".csv")
-    )
-    return (largest_counter, sql_datetime)
+        try:
+            table_name, counter, datetime = filename.split("__")
+            counter = int(counter.strip("[]").replace("#", ""))
+            if target_table_name is None or table_name == target_table_name:
+                if counter in counter_timestamp_mapping:
+                    raise ValueError("Duplicate counter values exist in filenames")
+                else:
+                    counter_timestamp_mapping[counter] = datetime
+                    counter_filename_mapping[counter] = filename
+        except ValueError:
+            raise WrongFilesIngestionBucket
+    return counter_timestamp_mapping, counter_filename_mapping
 
 
 def get_dataframe_from_s3(
     bucket_name: str,
     table_name: str,
-    counter_start: int = None,
-    counter_end: int = None,
-) -> pd.DataFrame:
+    counter_start: int = 0,
+    counter_end: int = float("inf"),
+) -> pd.DataFrame | None:
     """
-    !!!!!!!!!!!!COUNTER NOT WORKING YET!!!!!!!!!!!!
-
     Reads CSV files from an S3 bucket's folder titled table_name, concatenates them and returns a single pd.DataFrame. If no .csv files are found, returns None.
 
     Parameters:
@@ -118,6 +107,9 @@ def get_dataframe_from_s3(
 
     The function fetches CSV files from the specified S3 folder, concatenates them into a single DataFrame.
 
+    Raises:
+    WrongFilesIngestionBucket: If any of the filenames are not in the expected format, duplicate counters, any of the column names of the csv are not identical.
+
     Example:
     df = get_dataframe_from_s3(bucket_name='my_bucket', table_name='my_folder', counter_start=0, counter_end=5)
     """
@@ -127,15 +119,52 @@ def get_dataframe_from_s3(
     if response["KeyCount"] == 0:
         return None
 
-    table_s3_keys = [item["Key"] for item in response["Contents"]]
+    table_s3_keys_all = [item["Key"] for item in response["Contents"]]
     dfs = []
-    for s3_key in table_s3_keys:  # COUNTER NOT IMPLEMENTED
+    table_s3_keys_to_read = []
+
+    _, counter_to_filename_mapping = extract_counter_from_filenames(table_s3_keys_all)
+
+    if counter_start == 0 and counter_end == float("inf"):
+        # Read all keys
+        table_s3_keys_to_read = table_s3_keys_all
+
+    else:
+        # Read only keys between counter_start and counter_end
+        for counter in counter_to_filename_mapping.keys():
+            if counter_start <= counter < counter_end:
+                table_s3_keys_to_read.append(counter_to_filename_mapping[counter])
+
+    for s3_key in table_s3_keys_to_read:
         response = client.get_object(Bucket=bucket_name, Key=s3_key)
         csv_data = pd.read_csv(response["Body"])
         dfs.append(csv_data)
 
-    concatenated_df = pd.concat(dfs, ignore_index=True)
-    return concatenated_df
+    if check_all_df_columns_are_identical(dfs):
+        concatenated_df = pd.concat(dfs)
+        return concatenated_df
+    else:
+        raise WrongFilesIngestionBucket
+
+
+def check_all_df_columns_are_identical(dataframes: list[pd.DataFrame]) -> bool:
+    """
+    Check if all columns in a list of DataFrames have identical names.
+
+    Parameters:
+        dataframes (List[pd.DataFrame]): A list of pandas DataFrames to check.
+
+    Returns:
+        bool: True if all DataFrames have identical column names, False otherwise.
+    """
+    # Get the column names of the first DataFrame
+    reference_columns = dataframes[0].columns.tolist()
+
+    # Check if all other DataFrames have identical columns
+    for df in dataframes[1:]:
+        if df.columns.tolist() != reference_columns:
+            return False
+    return True
 
 
 if __name__ == "__main__":
