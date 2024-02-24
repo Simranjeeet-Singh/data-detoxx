@@ -3,6 +3,7 @@ import boto3
 import pandas as pd
 from utils.file_reading_utils import list_files_from_s3
 from lambda_functions.path_to_parquet import path_to_parquet
+from utils.file_reading_utils import get_dataframe_from_s3
 
 # Transformer functions
 from lambda_functions.fact_sales_transform import fact_sales_transformer
@@ -22,15 +23,28 @@ def lambda_handler2(event, context):
         s3 = boto3.client("s3")
         logger = logging.getLogger("MyLogger")
         logger.setLevel(logging.INFO)
-        tablenames=list(set([element.split('__')[0] for element in list_files_from_s3('data-detox-processed-bucket')]))
+        tablenames=list(set([element.split('__')[0] for element in list_files_from_s3('data-detox-ingestion-bucket')]))
         dataframes={}
-        for tablename in tablenames:
-            if tablename=='department' or tablename=='counterparty':
-                df=''#read all csvs for that table
-            else:
-                df='' #read only last updates via john_function('data-detox-ingestion-bucket', tablename)
-                dataframes[tablename]=df
+        # for tablename in tablenames:
+        #     # if tablename=='department' or tablename=='counterparty':
+        #     #     df=''#read all csvs for that table
+        #     # else:
+        #     df=get_dataframe_from_s3('data-detox-ingestion-bucket', tablename) #read only last updates via john_function('data-detox-ingestion-bucket', tablename)
+        #     dataframes[tablename]=df
         #dataframes is a dictionary containining all dataframes with the last updated/added data 
+        dataframes['address']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'address')
+        dataframes['counterparty']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'counterparty')
+        dataframes['currency']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'currency')
+        dataframes['department']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'department')
+        dataframes['design']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'design')
+        dataframes['payment_type']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'payment_type')
+        # dataframes['payment']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'payment') # something's wrong with the payment folder
+        dataframes['purchase_order']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'purchase_order')
+        dataframes['sales_order']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'sales_order')
+        dataframes['staff']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'staff')
+        dataframes['transaction']=get_dataframe_from_s3('data-detox-ingestion-bucket', 'transaction')
+        
+        print(dataframes, "<<<<<<<")
         processed_dataframes=process_dataframes(dataframes)
         for tablename in process_dataframes.keys():
             #save each df tlo appropriate parquet file in tmp with good name
@@ -78,6 +92,7 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
 
     return processed_df_dict
 
-# if __name__=='__main__':
-#     lambda_handler2('test','test')
+if __name__=='__main__':
+    lambda_handler2('test','test')
+
 
