@@ -1,7 +1,7 @@
 import logging
 import boto3
 import pandas as pd
-from utils.file_reading_utils import list_files_from_s3
+from utils.file_reading_utils import list_files_from_s3, get_dataframe_from_s3, return_latest_counter_and_timestamp_from_filenames
 from lambda_functions.path_to_parquet import path_to_parquet
 
 # Transformer functions
@@ -17,24 +17,32 @@ from lambda_functions.transform_payment_type import dim_payment_type
 from lambda_functions.transform_fact_purchase_order import transform_fact_purchase_order
 from lambda_functions.transform_fact_payment import fact_payment
 
+INGESTION_BUCKET='data-detox-ingestion-bucket'
+
 def lambda_handler2(event, context):
     try:
         s3 = boto3.client("s3")
         logger = logging.getLogger("MyLogger")
         logger.setLevel(logging.INFO)
-        tables_ingestion=list_files_from_s3('data-detox-ingestion-bucket')
+        tables_ingestion=list_files_from_s3(INGESTION_BUCKET)
         tablenames_ingestion=list(set([element.split('__')[0] for element in tables_ingestion ]))
-        dataframes={}
+        dataframes,counters_dates={},{}
+        non_updating_tables=['department', 'counterparty', 'currency', 'payment_type', 'address']
         for tablename in tablenames_ingestion:
-            if tablename=='department' or tablename=='counterparty':
-                df='' #read all csvs for that table
+            if tablename in non_updating_tables:
+                df=(get_dataframe_from_s3(INGESTION_BUCKET,tablename),1)
+                counters_dates=(1,'2022-11-03T142051563Z') #hardcoded random date
             else:
-                df='' #read only last updates via john_function('data-detox-ingestion-bucket', tablename)
+                tablename_files=[element.split('/')[-1] for element in tables_ingestion if element.split('/')[0]==tablename]
+                counters_dates=return_latest_counter_and_timestamp_from_filenames(tablename_files,tablename)
+                df=get_dataframe_from_s3(INGESTION_BUCKET,tablename, counter_start=counters_dates[0])
             dataframes[tablename]=df
-        #dataframes is a dictionary containining all dataframes with the last updated/added data 
+            counters_dates[tablename]=counters_dates
+        #dataframes is a dictionary containining all dataframes with the last updated/added data
+        #counters_dates is a dictionary containining corresponding counters and latest dates
         processed_dataframes=process_dataframes(dataframes)
         for tablename in processed_dataframes.keys():
-            path=find_path(tablename, tables_ingestion) 
+            path=path_to_parquet(tablename, counters_dates[tablename][0], counters_dates[tablename][1])
             processed_dataframes[tablename].to_parquet('/tmp/'+path,index=False) #might need pyarrow for this, check if we need it on aws layer or not
             try:
                 s3.upload_file(Filename=f"/tmp/{path}", Bucket='data-detox-processed-bucket', Key=path)
@@ -75,11 +83,6 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     processed_df_dict['fact_payment']=fact_payment(dataframes['payment'])
 
     return processed_df_dict
-
-def find_path(tablename, all_tables_files):
-    tablename_files=[element.split('/')[-1] for element in all_tables_files if element.split('/')[0]==tablename]
-    counter, date =return_latest_counter_and_timestamp_from_filenames(tablename,tablename_files)
-    return path_to_parquet(tablename, counter, date)
 
 if __name__=='__main__':
     lambda_handler2('test','test')
