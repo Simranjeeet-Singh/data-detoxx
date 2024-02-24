@@ -1,8 +1,21 @@
 import logging
 import boto3
 import pandas as pd
-from utils.file_reading_utils import list_files_from_s3, return_latest_counter_and_timestamp_from_filenames, path_to_parquet
-#TBD: import all transformation functions
+from utils.file_reading_utils import list_files_from_s3
+from lambda_functions.path_to_parquet import path_to_parquet
+
+# Transformer functions
+from lambda_functions.fact_sales_transform import fact_sales_transformer
+from lambda_functions.transform_date_table import transform_date_table
+from lambda_functions.transform_counterparty import dim_counterparty
+from lambda_functions.transform_staff_table import transform_staff_table
+from lambda_functions.transform_currency_table import transform_currency_table
+from lambda_functions.transform_design_table import transform_design_table
+from lambda_functions.transform_location_table import transform_location_table
+from lambda_functions.transform_transaction import dim_transaction
+from lambda_functions.transform_payment_type import dim_payment_type
+from lambda_functions.transform_fact_purchase_order import transform_fact_purchase_order
+from lambda_functions.transform_fact_payment import fact_payment
 
 def lambda_handler2(event, context):
     try:
@@ -49,15 +62,18 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     """
     processed_df_dict={}
 
-    # transform_ functions need to be replaced with our actual transformation functions
-    # processed_df_dict['fact_sales_order']=transform_fact_sales_order(dataframes['sales_order'])
-    # processed_df_dict['dim_date']=transform_dim_date(dataframes['sales_order'])
-    # processed_df_dict['dim_counterparty']=transform_fact_sales_order(dataframes['counterparty'],dataframes['address'])
-    # processed_df_dict['dim_staff']=transform_fact_sales_order(dataframes['staff'],dataframes['department'])
-    # processed_df_dict['dim_currency']=transform_fact_sales_order(dataframes['currency'])
-    # processed_df_dict['dim_design']=transform_fact_sales_order(dataframes['design'])
-    # processed_df_dict['dim_location']=transform_fact_sales_order(dataframes['location'])
-    # add more transformations here if we go beyond MVP
+    processed_df_dict['fact_sales_order']=fact_sales_transformer(dataframes['sales_order'], 1) # Second passed arguement to be confirmed
+    processed_df_dict['dim_date']=transform_date_table(dataframes['sales_order'])
+    processed_df_dict['dim_counterparty']=dim_counterparty(dataframes['counterparty'], dataframes['address'])
+    processed_df_dict['dim_staff']=transform_staff_table(dataframes['staff'], dataframes['department'])
+    processed_df_dict['dim_currency']=transform_currency_table(dataframes['currency'])
+    processed_df_dict['dim_design']=transform_design_table(dataframes['design'])
+    processed_df_dict['dim_location']=transform_location_table(dataframes['location'])
+    processed_df_dict['dim_transaction']=dim_transaction(dataframes['transaction'])
+    processed_df_dict['dim_payment_type']=dim_payment_type(dataframes['payment_type'])
+    processed_df_dict['fact_purchase_order']=transform_fact_purchase_order(dataframes['purchase_order'])
+    processed_df_dict['fact_payment']=fact_payment(dataframes['payment'])
+
     return processed_df_dict
 
 def find_path(tablename, all_tables_files):
