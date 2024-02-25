@@ -1,7 +1,7 @@
 import logging
 import boto3
 import pandas as pd
-from utils.file_reading_utils import list_files_from_s3, get_dataframe_from_s3, return_latest_counter_and_timestamp_from_filenames, path_to_parquet
+from utils.file_reading_utils import list_files_from_s3, get_dataframe_from_s3, return_latest_counter_and_timestamp_from_filenames, path_to_parquet, tables_reader_from_s3
 from utils.date_utils import convert_sql_timestamp_to_utc
 from pathlib import Path
 
@@ -19,6 +19,8 @@ from lambda_functions.transform_fact_purchase_order import transform_fact_purcha
 from lambda_functions.transform_fact_payment import fact_payment
 
 INGESTION_BUCKET='data-detox-ingestion-bucket'
+PROCESSED_BUCKET='data-detox-processed-bucket'
+
 
 def lambda_handler2(event, context):
     try:
@@ -26,19 +28,8 @@ def lambda_handler2(event, context):
         logger = logging.getLogger("MyLogger")
         logger.setLevel(logging.INFO)
         tables_ingestion=list_files_from_s3(INGESTION_BUCKET)
-        tablenames_ingestion=list(set([element.split('__')[0] for element in tables_ingestion ]))
-        dataframes,counters_dates={},{}
-        non_updating_tables=['department', 'counterparty', 'currency', 'payment_type', 'address']
-        for tablename in tablenames_ingestion:
-            if tablename in non_updating_tables:
-                df=get_dataframe_from_s3(INGESTION_BUCKET,tablename)
-                tb_counters_dates=(1,'2022-11-03 14:20:51.563') #hardcoded random date
-            else:
-                tablename_files=[element for element in tables_ingestion if element.split('__')[0]==tablename]
-                tb_counters_dates=return_latest_counter_and_timestamp_from_filenames(tablename,tablename_files)
-                df=get_dataframe_from_s3(INGESTION_BUCKET,tablename, counter_start=tb_counters_dates[0])
-            dataframes[tablename]=df
-            counters_dates[tablename]=tb_counters_dates
+        tables_processed=list_files_from_s3(PROCESSED_BUCKET)
+        dataframes, counters_dates=tables_reader_from_s3(tables_ingestion,INGESTION_BUCKET)
         #dataframes is a dictionary containining all dataframes with the last updated/added data
         #counters_dates is a dictionary containining corresponding counters and latest dates
         processed_dataframes=process_dataframes(dataframes)

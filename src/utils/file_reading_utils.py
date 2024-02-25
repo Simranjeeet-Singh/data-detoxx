@@ -26,11 +26,9 @@ def return_latest_counter_and_timestamp_from_filenames(
 
     if not filenames:
         return 0, None
-
     counter_timestamp_dict, *discard_values = extract_counter_from_filenames(
         filenames, target_table_name
     )
-
     largest_counter = max(counter_timestamp_dict.keys())
     sql_datetime = convert_utc_to_sql_timestamp(
         counter_timestamp_dict[largest_counter].strip(".csv").strip(".parquet")
@@ -183,6 +181,35 @@ def path_to_parquet(table_name: str, counter: int, last_updated: str) -> str:
             and {date} is the current UTC datetime converted to string.
     """
     return f"{table_name}/{table_name}__[#{counter}]__{last_updated}.parquet"
+
+def tables_reader_from_s3(tables: list, bucketname: str) -> tuple[dict[str, pd.DataFrame], dict[str, tuple[int, str]]]:
+    """
+    Reads tables data from S3 bucket, taking the last written file for most tables, and returns dataframes along with their latest counter and timestamp.
+    For the non-updating tables, it always retrieves all the data in the s3 bucket.
+
+    Parameters:
+        tables (list): List of table names with counters appended in the format 'tablename__counter'.
+        bucketname (str): Name of the S3 bucket.
+
+    Returns:
+        Tuple[Dict[str, pd.DataFrame], Dict[str, Tuple[int, str]]]: A tuple containing two dictionaries:
+            - First dictionary maps table names to their corresponding dataframes.
+            - Second dictionary maps table names to a tuple containing the latest counter and latest timestamp. 
+    """
+    tablenames=list(set([element.split('__')[0].split('/')[0] for element in tables]))
+    dataframes,counters_dates={},{}
+    non_updating_tables=['department', 'counterparty', 'currency', 'payment_type', 'address']
+    for tablename in tablenames:
+        if tablename in non_updating_tables:
+            df=get_dataframe_from_s3(bucketname,tablename)
+            tb_counters_dates=(1,'2022-11-03 14:20:51.563') #hardcoded random date
+        else:
+            tablename_files=[element for element in tables if element.split('__')[0].split('/')[0]==tablename]
+            tb_counters_dates=return_latest_counter_and_timestamp_from_filenames(tablename,tablename_files)
+            df=get_dataframe_from_s3(bucketname,tablename, counter_start=tb_counters_dates[0])
+        dataframes[tablename]=df
+        counters_dates[tablename]=tb_counters_dates
+    return dataframes,counters_dates
 
 if __name__ == "__main__":
     # filenames = ["mytable_[#1]_2009-08-08T121800Z", "mytable_[#2]_2009-08-08T1218020Z"]
