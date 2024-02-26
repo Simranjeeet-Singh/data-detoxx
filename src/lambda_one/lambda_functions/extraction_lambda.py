@@ -121,7 +121,6 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
         new_csv_paths.append(path)
         save_table_to_csv(cols_name, rows, path, logger)
     write_state_file('/tmp/state_file.json', dic_for_statefile)
-    new_csv_paths.append('state_file.json')
     return new_csv_paths
 
 

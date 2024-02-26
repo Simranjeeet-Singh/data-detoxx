@@ -26,7 +26,8 @@ def upload_processed_df(processed_dataframes: dict[str, pd.DataFrame],
     old_to_new_tables={'fact_sales_order':'sales_order', 'dim_date':'sales_order','dim_staff':'staff', 'dim_currency':'currency','dim_design':'design',
                        'dim_transaction':'transaction','dim_payment_type':'payment_type','fact_purchase_order':'purchase_order','fact_payment':'payment', 'dim_counterparty':'counterparty', 'dim_location':'sales_order'}
     for tablename in processed_dataframes.keys():
-        path=path_to_parquet(tablename, counters_dates[old_to_new_tables[tablename]][0], convert_sql_timestamp_to_utc(counters_dates[old_to_new_tables[tablename]][1]))
+        # get method is necessary if one or more tables are not getting updated. In this case, we pass a dummy counter and date to path_to_parquet, but hopefully no file should be uploaded to the s3 bucket
+        path=path_to_parquet(tablename, counters_dates.get(old_to_new_tables[tablename],[0,'2022-11-03 14:20:49.962'])[0], convert_sql_timestamp_to_utc(counters_dates.get(old_to_new_tables[tablename],[0,'2022-11-03 14:20:49.962'])[1]))
         folder_name = Path(f"/tmp/{tablename}").mkdir(parents=True, exist_ok=True)
         processed_dataframes[tablename].to_parquet(f'/tmp/{path}',index=False) 
         try:
