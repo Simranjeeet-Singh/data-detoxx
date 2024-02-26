@@ -11,7 +11,12 @@ def sales_dt_transform(datetime_str : str) -> tuple[str,str]:
     Returns:
         tuple[str, str]: A tuple of two strings representing the date and time components.
     """
-    dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f")
+    try:
+        dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f")
+    except ValueError:
+        # If milliseconds are missing, append '.000' to the string
+        datetime_str += '.000'
+        dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f")
     return str(dt.date()), str(dt.time())
 
 def precision_changer(num : float) -> float:

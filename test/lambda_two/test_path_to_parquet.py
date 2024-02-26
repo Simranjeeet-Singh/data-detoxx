@@ -1,4 +1,4 @@
-from lambda_two.lambda_functions.path_to_parquet import path_to_parquet
+from src.utils.file_reading_utils import path_to_parquet
 
 def test_returns_correct_path():
     output = path_to_parquet('fact_sales_order', 1, '2024')
