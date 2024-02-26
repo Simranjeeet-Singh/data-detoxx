@@ -1,5 +1,4 @@
 import boto3
-from sympy import E
 from utils.date_utils import (
     convert_utc_to_sql_timestamp,
 )
@@ -86,7 +85,6 @@ def extract_counter_from_filenames(
         except ValueError as e:
             # logger.error(e)
             if filename == "state_file.json":
-                print(filename, e, "<<<<<<<")
                 pass
             else:
                 raise
@@ -150,7 +148,7 @@ def get_dataframe_from_s3(
         concatenated_df = pd.concat(dfs)
         return concatenated_df
     else:
-        raise WrongFilesIngestionBucket
+        raise ValueError("Cannot concat dataframes if column are not identical")
 
 
 def check_all_df_columns_are_identical(dataframes: list[pd.DataFrame]) -> bool:
