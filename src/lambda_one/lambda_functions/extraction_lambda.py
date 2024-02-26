@@ -80,7 +80,7 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
     Extract all rows from all its SQL tables;
     Inputs them in pandas dataframes;
     Saves each dataframe to .csv files with same name as table;
-    Writes a state_file.json in the bucket, containing a dictionary with the table_names as keys and the last counters as values.
+    Writes a state_file.json in the bucket, containing a dictionary with the table_names as keys and True if they have been updated in this iteration, false otherwise.
     returns the paths of these .csv files.
     """
 
@@ -95,7 +95,7 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
         counter, last_updated_from_ingestion_bucket_sql_timestamp = (
             return_latest_counter_and_timestamp_from_filenames(table_name, filenames)
         )
-        dic_for_statefile[table_name]=counter
+        dic_for_statefile[table_name]=False
         if counter == 0:
             rows = conn.run(
                 f"""SELECT * FROM {identifier(table_name)}
@@ -109,6 +109,8 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
                     ORDER BY last_updated ASC
                     ;"""
             )
+        if rows:
+            dic_for_statefile[table_name]=True
         cols_name = [el["name"] for el in conn.columns]
         path = path_to_csv(
             table_name,
