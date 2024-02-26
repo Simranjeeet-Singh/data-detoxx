@@ -10,10 +10,21 @@ resource "null_resource" "clear_tmp" {
 
 }
 
-resource "null_resource" "install_dependencies" {
+resource "null_resource" "install_lambda_one_dependencies" {
   depends_on = [null_resource.clear_tmp]
   provisioner "local-exec" {
-    command = "pip install -r ${path.module}/../src/lambda_one/lambda_requirements.txt -t ${path.module}/../tmp/dependencies/python"
+    command = "pip install -r ${path.module}/../src/lambda_one/lambda_requirements.txt -t ${path.module}/../tmp/lambda_one_dependencies/python"
+  }
+  triggers = {
+  always_run = timestamp()
+  }
+
+}
+
+resource "null_resource" "install_lambda_two_dependencies" {
+  depends_on = [null_resource.clear_tmp]
+  provisioner "local-exec" {
+    command = "pip install -r ${path.module}/../src/lambda_two/lambda_requirements.txt -t ${path.module}/../tmp/lambda_two_dependencies/python"
   }
   triggers = {
   always_run = timestamp()
@@ -44,15 +55,25 @@ data "archive_file" "lambda_utils_zip" {
 }
 
 data "archive_file" "lambda_one_dependencies_zip" {
-  depends_on = [null_resource.clear_tmp, null_resource.install_dependencies]
+  depends_on = [null_resource.clear_tmp, null_resource.install_lambda_one_dependencies]
   excludes   = [
     "/python/__pycache__"  // Doesn't work for some reason??
   ]
   type             = "zip"
-  source_dir      = "${path.module}/../tmp/dependencies"
+  source_dir      = "${path.module}/../tmp/lambda_one_dependencies"
   output_path      = "${path.module}/../tmp/lambda_one_dependencies.zip"
 }
 
+data "archive_file" "lambda_two_dependencies_zip" {
+  depends_on = [null_resource.clear_tmp, null_resource.install_lambda_two_dependencies]
+  excludes   = [
+    "/python/__pycache__"  // Doesn't work for some reason??
+  ]
+
+  type             = "zip"
+  source_dir      = "${path.module}/../tmp/lambda_two_dependencies"
+  output_path      = "${path.module}/../tmp/lambda_two_dependencies.zip"
+}
 
 data "archive_file" "lambda_one_zip" {
   excludes   = [
