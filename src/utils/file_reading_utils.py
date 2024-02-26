@@ -196,6 +196,7 @@ def tables_reader_from_s3(tables: list, bucketname: str) -> tuple[dict[str, pd.D
             - First dictionary maps table names to their corresponding dataframes.
             - Second dictionary maps table names to a tuple containing the latest counter and latest timestamp. 
     """
+    EXPECTED_NO_TABLES=11
     tablenames=list(set([element.split('__')[0].split('/')[0] for element in tables]))
     dataframes,counters_dates={},{}
     non_updating_tables=['department', 'counterparty', 'currency', 'payment_type', 'address']
@@ -210,7 +211,7 @@ def tables_reader_from_s3(tables: list, bucketname: str) -> tuple[dict[str, pd.D
         dataframes[tablename]=df
         counters_dates[tablename]=tb_counters_dates
     if len(dataframes.keys())==len(counters_dates.keys()):
-        if len(dataframes.keys())==11:
+        if len(dataframes.keys())==EXPECTED_NO_TABLES:
             return dataframes,counters_dates
         else:
             raise RuntimeError('Some tables are missing from the ingestion bucket. Please make sure that they are all present.')
