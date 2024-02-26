@@ -65,7 +65,6 @@ def test_fact_sales_transformer_output_is_df_with_correct_cols():
     assert type(return_df) == type(test_df)
     print(list(return_df.columns.values))
     assert list(return_df.columns.values) == [
-        "sales_record_id",
         "sales_order_id",
         "created_date",
         "created_time",
@@ -120,7 +119,6 @@ def test_fact_sales_transformer_transforms_df_correctly():
     expected_return_df = pd.DataFrame(
         [
             {
-                "sales_record_id": 1,
                 "sales_order_id": 12 - 10 - 1234,
                 "created_date": "2022-11-03",
                 "created_time": "14:20:52.186000",
@@ -137,7 +135,6 @@ def test_fact_sales_transformer_transforms_df_correctly():
                 "agreed_delivery_location_id": 2,
             },
             {
-                "sales_record_id": 2,
                 "sales_order_id": 2,
                 "created_date": "2022-11-03",
                 "created_time": "14:20:52.186000",
@@ -160,7 +157,6 @@ def test_fact_sales_transformer_transforms_df_correctly():
 
     expected_return_df.to_csv("./expected.csv")
     return_df.to_csv("./actual.csv")
-    expected_return_df.index = expected_return_df.loc[:, "sales_record_id"].values
     assert (return_df == expected_return_df).all().all()
 
 def test_fact_sales_transformer_transforms_df_correctly_with_last_serial():
@@ -200,7 +196,6 @@ def test_fact_sales_transformer_transforms_df_correctly_with_last_serial():
     expected_return_df = pd.DataFrame(
         [
             {
-                "sales_record_id": 100,
                 "sales_order_id": 12 - 10 - 1234,
                 "created_date": "2022-11-03",
                 "created_time": "14:20:52.186000",
@@ -217,7 +212,6 @@ def test_fact_sales_transformer_transforms_df_correctly_with_last_serial():
                 "agreed_delivery_location_id": 2,
             },
             {
-                "sales_record_id": 101,
                 "sales_order_id": 2,
                 "created_date": "2022-11-03",
                 "created_time": "14:20:52.186000",
@@ -240,5 +234,4 @@ def test_fact_sales_transformer_transforms_df_correctly_with_last_serial():
 
     expected_return_df.to_csv("./expected.csv")
     return_df.to_csv("./actual.csv")
-    expected_return_df.index = expected_return_df.loc[:, "sales_record_id"].values
     assert (return_df == expected_return_df).all().all()

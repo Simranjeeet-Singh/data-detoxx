@@ -101,7 +101,7 @@ def test_returns_transformed_fact_payment_table_when_passed_original_payment_db(
 	}]
     df_payment=pd.DataFrame(payment)
     result=fact_payment(df_payment)
-    cols_list=['payment_record_id','payment_id','created_date','created_time','last_updated_date','last_updated_time','transaction_id','counterparty_id','payment_amount','currency_id','payment_type_id',
+    cols_list=['payment_id','created_date','created_time','last_updated_date','last_updated_time','transaction_id','counterparty_id','payment_amount','currency_id','payment_type_id',
                            'paid','payment_date','company_ac_number','counterparty_ac_number']
     assert result.columns.to_list()==cols_list
 
