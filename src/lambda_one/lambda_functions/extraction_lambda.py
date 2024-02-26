@@ -8,7 +8,7 @@ from utils.file_reading_utils import (
     list_files_from_s3,
     return_latest_counter_and_timestamp_from_filenames,
 )
-
+from utils.state_file import write_state_file
 
 def extract_tablenames(conn: Connection) -> list[str]:
     """
