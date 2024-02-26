@@ -144,7 +144,7 @@ def test_get_dataframe_from_s3_for_invalid_filename():
         Key=TABLE_NAME + "/" + filename3,
         Body=pd3.to_csv(index=False),
     )
-    with pytest.raises(WrongFilesIngestionBucket):
+    with pytest.raises(ValueError):
         df = get_dataframe_from_s3(BUCKET_NAME, TABLE_NAME)
 
 
@@ -159,7 +159,7 @@ def test_get_dataframe_from_s3_for_invalid_column_name():
         Key=TABLE_NAME + "/" + filename4,
         Body=pd4.to_csv(index=False),
     )
-    with pytest.raises(WrongFilesIngestionBucket):
+    with pytest.raises(ValueError):
         df = get_dataframe_from_s3(BUCKET_NAME, TABLE_NAME)
 
 

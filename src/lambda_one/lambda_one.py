@@ -77,10 +77,10 @@ def lambda_handler(event, context):
         logger.error(
             "A file with the wrong name format was put in the ingestion bucket. Please remove it to continue execution."
         )
-        raise RuntimeError
+        raise
     except Exception as e:
         logger.error(e)
-        raise RuntimeError
+        raise
 
 
 if __name__ == "__main__":
