@@ -23,14 +23,16 @@ def left_join_df(
 
 
     """
+    df_table_1_cp=df_table_1.copy()
+    df_table_2_cp=df_table_2.copy()
     try:
         if foreign_key_2 == "":
             foreign_key_2 = foreign_key_1
-        df_table_1.columns = ["table1_" + field for field in df_table_1.columns]
-        df_table_2.columns = ["table2_" + field for field in df_table_2.columns]
+        df_table_1_cp.columns = ["table1_" + field for field in df_table_1_cp.columns]
+        df_table_2_cp.columns = ["table2_" + field for field in df_table_2_cp.columns]
         merged_df = pd.merge(
-            df_table_1,
-            df_table_2,
+            df_table_1_cp,
+            df_table_2_cp,
             left_on="table1_" + foreign_key_1,
             right_on="table2_" + foreign_key_2,
         )
@@ -81,7 +83,6 @@ def column_filter(
         for field in columns_filter:
             new_field = columns_renamed[columns_filter.index(field)]
             df_final_table[new_field] = df_table[field].copy()
-        print(df_table, df_final_table, sep="\n")
         return df_final_table
 
     except ValueError as e:

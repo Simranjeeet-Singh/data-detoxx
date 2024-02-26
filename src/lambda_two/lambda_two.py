@@ -28,7 +28,6 @@ def lambda_handler2(event, context):
         logger = logging.getLogger("MyLogger")
         logger.setLevel(logging.INFO)
         tables_ingestion=list_files_from_s3(INGESTION_BUCKET)
-        tables_processed=list_files_from_s3(PROCESSED_BUCKET)
         dataframes, counters_dates=tables_reader_from_s3(tables_ingestion,INGESTION_BUCKET)
         #dataframes is a dictionary containining all dataframes with the last updated/added data
         #counters_dates is a dictionary containining corresponding counters and latest dates
@@ -38,11 +37,11 @@ def lambda_handler2(event, context):
         for tablename in processed_dataframes.keys():
             path=path_to_parquet(tablename, counters_dates[old_to_new_tables[tablename]][0], convert_sql_timestamp_to_utc(counters_dates[old_to_new_tables[tablename]][1]))
             folder_name = Path(f"/tmp/{tablename}").mkdir(parents=True, exist_ok=True)
-            processed_dataframes[tablename].to_parquet('/tmp/'+path,index=False) 
+            processed_dataframes[tablename].to_parquet(f'/tmp/{path}',index=False) 
             try:
-                s3.upload_file(Filename=f"/tmp/{path}", Bucket='data-detox-processed-bucket', Key=path)
+                s3.upload_file(Filename=f"/tmp/{path}", Bucket=PROCESSED_BUCKET, Key=path)
             except FileNotFoundError:
-                tab_name = path.split("__")[0]
+                tab_name = path.split("/")[0]
                 logger.info(f"No rows added or modified to table {tab_name}")
     except Exception as e:
         logger.error(e)
@@ -66,13 +65,11 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     processed_df_dict={}
     processed_df_dict['fact_sales_order']=fact_sales_transformer(dataframes['sales_order'], 1) # Second passed arguement to be confirmed
     processed_df_dict['dim_date']=transform_date_table(dataframes['sales_order'])
-    # processed_df_dict['dim_counterparty']=dim_counterparty(dataframes['counterparty'], dataframes['address'])
-    #bugged
+    processed_df_dict['dim_counterparty']=dim_counterparty(dataframes['counterparty'], dataframes['address'])
     processed_df_dict['dim_staff']=transform_staff_table(dataframes['staff'], dataframes['department'])
     processed_df_dict['dim_currency']=transform_currency_table(dataframes['currency'])
     processed_df_dict['dim_design']=transform_design_table(dataframes['design'])
-    # processed_df_dict['dim_location']=transform_location_table(dataframes['location'])
-    # there's no table location in original db, fix this
+    processed_df_dict['dim_location']=transform_location_table(dataframes['address'])
     processed_df_dict['dim_transaction']=dim_transaction(dataframes['transaction'])
     processed_df_dict['dim_payment_type']=dim_payment_type(dataframes['payment_type'])
     processed_df_dict['fact_purchase_order']=transform_fact_purchase_order(dataframes['purchase_order'])

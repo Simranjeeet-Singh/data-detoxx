@@ -13,7 +13,7 @@ def test_returns_the_dim_counterparty_table_when_passed_df_containing_database_c
                               [2,"Leannon,'Predovic and Morar",28,'Melba Sanford','Jean Hane III','2022-11-03 14:20:51.563','2022-11-03 14:20:51.563'],
                               [3,'Armstrong Inc',2,'Jane Wiza','Myra Kovacek','2022-11-03 14:20:51.563','2022-11-03 14:20:51.563']
                               ])
-    counterparty_df.columns=['counterparty_id','counterparty_legal_name','counterparty_address_id','commercial_contact','delivery_contact','created_at','last_updated']
+    counterparty_df.columns=['counterparty_id','counterparty_legal_name','legal_address_id','commercial_contact','delivery_contact','created_at','last_updated']
     address_df=pd.DataFrame([
                          [1,'6826 Herzog Via','N/A','Avon','New Patienceburgh','28441''Turkey','1803 637401''2022-11-03 14:20:49.962','2022-11-03 14:20:49.962'],
                          [2,'179 Alexie Cliffs','N/A','N/A','Aliso Viejo','99305-7380','San Marino','9621 880720','2022-11-03 14:20:49.962','2022-11-03 14:20:49.962'],

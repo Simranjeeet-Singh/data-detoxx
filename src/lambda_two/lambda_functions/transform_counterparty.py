@@ -27,7 +27,7 @@ def dim_counterparty(df_counterparty:pd.DataFrame,df_address:pd.DataFrame):
     df_address.fillna({'address_line_2': 'N/A'}, inplace=True)
     df_counterparty.to_csv('./counterparty.csv')
     df_address.to_csv('./address.csv')
-    merged_df=left_join_df(df_counterparty,df_address,'counterparty_address_id','address_id')
+    merged_df=left_join_df(df_counterparty,df_address,'legal_address_id','address_id')
     #df_counterparty.merge(df_address)
     columns_needed_table1=['counterparty_id','counterparty_legal_name']
     columns_needed_table2=['address_line_1','address_line_2','district','city','postal_code','country','phone']
