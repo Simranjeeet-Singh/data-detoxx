@@ -3,9 +3,9 @@ import boto3
 import ast
 
 
-def get_secret():
+def get_secret(secret_name="database_credentials"):
 
-    secret_name = "database_credentials"
+    # secret_name = "database_credentials"
     region_name = "eu-west-2"
 
     # Create a Secrets Manager client
