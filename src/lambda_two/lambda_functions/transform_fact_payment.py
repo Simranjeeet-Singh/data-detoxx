@@ -1,5 +1,4 @@
 import pandas as pd
-import math 
 from datetime import datetime
 def fact_payment(df_payment:pd.DataFrame):
     """
