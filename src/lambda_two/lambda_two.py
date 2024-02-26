@@ -28,8 +28,8 @@ def lambda_handler2(event, context):
         s3 = boto3.client("s3")
         logger = logging.getLogger("MyLogger")
         logger.setLevel(logging.INFO)
-        tables_ingestion=list_files_from_s3(INGESTION_BUCKET)
-        dataframes, counters_dates=tables_reader_from_s3(tables_ingestion,INGESTION_BUCKET)
+        all_files_from_ingestion=list_files_from_s3(INGESTION_BUCKET)
+        dataframes, counters_dates=tables_reader_from_s3(all_files_from_ingestion,INGESTION_BUCKET)
         #dataframes is a dictionary containining all dataframes with the last updated/added data
         #counters_dates is a dictionary containining corresponding counters and latest dates
         processed_dataframes=process_dataframes(dataframes)

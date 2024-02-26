@@ -205,10 +205,9 @@ def tables_reader_from_s3(
             - First dictionary maps table names to their corresponding dataframes.
             - Second dictionary maps table names to a tuple containing the latest counter and latest timestamp.
     """
-    EXPECTED_NO_TABLES = 11
     tablenames = list(set([element.split("__")[0].split("/")[0] for element in tables]))
     dataframes, counters_dates = {}, {}
-    non_updating_tables = [
+    dependent_tables = [
         "department",
         "counterparty",
         "currency",
@@ -216,30 +215,29 @@ def tables_reader_from_s3(
         "address",
     ]
     for tablename in tablenames:
-        if tablename in non_updating_tables:
-            df = get_dataframe_from_s3(bucketname, tablename)
-            tb_counters_dates = (1, "2022-11-03 14:20:51.563")  # hardcoded random date
+        if tablename in dependent_tables:
+            df = get_dataframe_from_s3(bucketname, tablename)   # get all data from ingestion bucket 
+            tb_counters_dates = (1, "2022-11-03 14:20:51.563")  # hardcoded random date, to be fixed to have actual last_update
         else:
-            tablename_files = [
-                element
-                for element in tables
-                if element.split("__")[0].split("/")[0] == tablename
-            ]
-            tb_counters_dates = return_latest_counter_and_timestamp_from_filenames(
-                tablename, tablename_files
-            )
-            df = get_dataframe_from_s3(
-                bucketname, tablename, counter_start=tb_counters_dates[0]
-            )
+            dict = read_state_file_from_ingestion_bucket(bucket_name) #to be written
+            if dict[tablename]:
+                tablename_files = [
+                    element
+                    for element in tables
+                    if element.split("__")[0].split("/")[0] == tablename
+                ]
+                tb_counters_dates = return_latest_counter_and_timestamp_from_filenames(
+                    tablename, tablename_files
+                )
+                df = get_dataframe_from_s3(
+                    bucketname, tablename, counter_start=tb_counters_dates[0]
+                )
+            else:
+                continue
         dataframes[tablename] = df
         counters_dates[tablename] = tb_counters_dates
     if len(dataframes.keys()) == len(counters_dates.keys()):
-        if len(dataframes.keys()) == EXPECTED_NO_TABLES:
-            return dataframes, counters_dates
-        else:
-            raise RuntimeError(
-                "Some tables are missing from the ingestion bucket. Please make sure that they are all present."
-            )
+        return dataframes, counters_dates
     else:
         raise RuntimeError(
             "There has been a problem in retrieving versioning of files in the ingestion bucket."
