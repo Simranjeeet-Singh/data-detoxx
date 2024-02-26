@@ -80,12 +80,14 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
     Extract all rows from all its SQL tables;
     Inputs them in pandas dataframes;
     Saves each dataframe to .csv files with same name as table;
+    Writes a state_file.json in the bucket, containing a dictionary with the table_names as keys and the last counters as values.
     returns the paths of these .csv files.
     """
 
     tablenames = extract_tablenames(conn)
     new_csv_paths = []
     filenames = list_files_from_s3(bucket_name)
+    dic_for_statefile={}
     for table_name in tablenames:
         last_updated_from_database_utc_timestamp = convert_datetime_to_utc(
             extract_last_updated_from_table(conn, table_name)
@@ -93,6 +95,7 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
         counter, last_updated_from_ingestion_bucket_sql_timestamp = (
             return_latest_counter_and_timestamp_from_filenames(table_name, filenames)
         )
+        dic_for_statefile[table_name]=counter
         if counter == 0:
             rows = conn.run(
                 f"""SELECT * FROM {identifier(table_name)}
@@ -115,6 +118,8 @@ def save_db_to_csv(conn: Connection, logger, bucket_name: str) -> list:
         folder_name = Path(f"/tmp/{table_name}").mkdir(parents=True, exist_ok=True)
         new_csv_paths.append(path)
         save_table_to_csv(cols_name, rows, path, logger)
+    write_state_file('/tmp/state_file.json', dic_for_statefile)
+    new_csv_paths.append('state_file.json')
     return new_csv_paths
 
 

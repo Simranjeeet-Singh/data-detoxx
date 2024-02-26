@@ -5,7 +5,7 @@ from pg8000.native import Connection
 from pg8000 import DatabaseError
 from lambda_functions.extraction_lambda import save_db_to_csv
 from utils.extract_secrets import get_secret
-from utils.file_reading_utils import WrongFilesIngestionBucket
+from utils.file_reading_utils import WrongFilesIngestionBucket, return_latest_counter_and_timestamp_from_filenames
 
 BUCKET_NAME = "data-detox-ingestion-bucket"
 
