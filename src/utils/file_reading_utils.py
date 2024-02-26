@@ -4,7 +4,7 @@ from utils.date_utils import (
 )
 import pandas as pd
 import logging
-
+from utils.state_file import read_state_file_from_s3
 
 class WrongFilesIngestionBucket(Exception):
     pass
@@ -46,7 +46,7 @@ def list_files_from_s3(bucket_name: str) -> list[str]:
     response = client.list_objects(Bucket=bucket_name)
     if "Contents" not in response:
         return []
-    return [item["Key"].split("/")[-1] for item in response["Contents"]]
+    return [item["Key"].split("/")[-1] for item in response["Contents"] if item["Key"]!='state_file.json']
 
 
 def extract_counter_from_filenames(
@@ -213,13 +213,20 @@ def tables_reader_from_s3(
         "currency",
         "payment_type",
         "address",
-    ]
+    ] # The .csv files for these tables are always all read and stored in a single .parquet file
     for tablename in tablenames:
         if tablename in dependent_tables:
-            df = get_dataframe_from_s3(bucketname, tablename)   # get all data from ingestion bucket 
-            tb_counters_dates = (1, "2022-11-03 14:20:51.563")  # hardcoded random date, to be fixed to have actual last_update
+            df = get_dataframe_from_s3(bucketname, tablename)   # get all .csv files from ingestion bucket
+            tablename_files = [
+                    element
+                    for element in tables
+                    if element.split("__")[0].split("/")[0] == tablename
+                ]
+            tb_counters_dates = return_latest_counter_and_timestamp_from_filenames(
+                    tablename, tablename_files
+                )
         else:
-            dict = read_state_file_from_ingestion_bucket(bucket_name) #to be written
+            dict = read_state_file_from_s3(bucketname)
             if dict[tablename]:
                 tablename_files = [
                     element

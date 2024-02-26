@@ -1,7 +1,7 @@
 import boto3
 import logging
 import pandas as pd
-import Path
+from pathlib import Path
 from utils.file_reading_utils import path_to_parquet
 from utils.date_utils import convert_sql_timestamp_to_utc
 
