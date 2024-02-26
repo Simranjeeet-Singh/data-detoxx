@@ -10,17 +10,15 @@ resource "aws_lambda_function" "s3_file_reader" {
   layers = [aws_lambda_layer_version.lambda_one_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]
 }
 
-#lambda 2
 resource "aws_lambda_function" "s3_processor" {
-  depends_on = [data.archive_file.lambda_two_zip]
-  #aws_lambda_layer_version.lambda_oneß_dependencies
+  depends_on = [data.archive_file.lambda_two_zip, aws_lambda_layer_version.lambda_two_dependencies]
   filename = "${path.module}/../tmp/lambda_two.zip"
   function_name = "lambda_handler2"
   role          = aws_iam_role.lambda_two_role.arn
   handler       = "lambda_two.lambda_handler2"
   runtime = "python3.11"
   timeout = 600
-  # layers = [aws_lambda_layer_version.lambda_two_dependencies.arn, "arn:aws:lambda:eu-west-2:336392948345:layer:AWSSDKPandas-Python39:16"]
+  layers = [aws_lambda_layer_version.lambda_two_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]
 }
 
 resource "aws_lambda_permission" "allow_s3" {
