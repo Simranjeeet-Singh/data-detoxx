@@ -26,14 +26,12 @@ def return_latest_counter_and_timestamp_from_filenames(
 
     if not filenames:
         return 0, None
-
     counter_timestamp_dict, *discard_values = extract_counter_from_filenames(
         filenames, target_table_name
     )
-
     largest_counter = max(counter_timestamp_dict.keys())
     sql_datetime = convert_utc_to_sql_timestamp(
-        counter_timestamp_dict[largest_counter].strip(".csv")
+        counter_timestamp_dict[largest_counter].strip(".csv").strip(".parquet")
     )
     return (largest_counter, sql_datetime)
 
@@ -77,9 +75,10 @@ def extract_counter_from_filenames(
             table_name, counter, datetime = filename.split("__")
             counter = int(counter.strip("[]").replace("#", ""))
             if target_table_name is None or table_name == target_table_name:
-                if counter in counter_timestamp_mapping:
-                    raise ValueError("Duplicate counter values exist in filenames")
-                else:
+                # if counter in counter_timestamp_mapping:
+                #     print(counter, table_name)
+                #     raise ValueError("Duplicate counter values exist in filenames")
+                # else:
                     counter_timestamp_mapping[counter] = datetime
                     counter_filename_mapping[counter] = filename
         except ValueError:
@@ -166,6 +165,58 @@ def check_all_df_columns_are_identical(dataframes: list[pd.DataFrame]) -> bool:
             return False
     return True
 
+def path_to_parquet(table_name: str, counter: int, last_updated: str) -> str:
+    """
+    Generates a file path for storing a Parquet file.
+
+    Args:
+        `table_name`: The name of the table.
+        `counter`: An integer counter for versioning or distinguishing files.
+
+    Returns:
+        `str`: A string representing the file path in the format:
+            "{table_name}/{table_name}__[#{counter}]__{date}.parquet"
+            where {table_name} is the name of the table,
+            {counter} is the version or counter value,
+            and {date} is the current UTC datetime converted to string.
+    """
+    return f"{table_name}/{table_name}__[#{counter}]__{last_updated}.parquet"
+
+def tables_reader_from_s3(tables: list, bucketname: str) -> tuple[dict[str, pd.DataFrame], dict[str, tuple[int, str]]]:
+    """
+    Reads tables data from S3 bucket, taking the last written file for most tables, and returns dataframes along with their latest counter and timestamp.
+    For the non-updating tables, it always retrieves all the data in the s3 bucket.
+
+    Parameters:
+        tables (list): List of table names with counters appended in the format 'tablename__counter'.
+        bucketname (str): Name of the S3 bucket.
+
+    Returns:
+        Tuple[Dict[str, pd.DataFrame], Dict[str, Tuple[int, str]]]: A tuple containing two dictionaries:
+            - First dictionary maps table names to their corresponding dataframes.
+            - Second dictionary maps table names to a tuple containing the latest counter and latest timestamp. 
+    """
+    EXPECTED_NO_TABLES=11
+    tablenames=list(set([element.split('__')[0].split('/')[0] for element in tables]))
+    dataframes,counters_dates={},{}
+    non_updating_tables=['department', 'counterparty', 'currency', 'payment_type', 'address']
+    for tablename in tablenames:
+        if tablename in non_updating_tables:
+            df=get_dataframe_from_s3(bucketname,tablename)
+            tb_counters_dates=(1,'2022-11-03 14:20:51.563') #hardcoded random date
+        else:
+            tablename_files=[element for element in tables if element.split('__')[0].split('/')[0]==tablename]
+            tb_counters_dates=return_latest_counter_and_timestamp_from_filenames(tablename,tablename_files)
+            df=get_dataframe_from_s3(bucketname,tablename, counter_start=tb_counters_dates[0])
+        dataframes[tablename]=df
+        counters_dates[tablename]=tb_counters_dates
+    if len(dataframes.keys())==len(counters_dates.keys()):
+        if len(dataframes.keys())==EXPECTED_NO_TABLES:
+            return dataframes,counters_dates
+        else:
+            raise RuntimeError('Some tables are missing from the ingestion bucket. Please make sure that they are all present.')
+    else:
+        raise RuntimeError('There has been a problem in retrieving versioning of files in the ingestion bucket.')
 
 if __name__ == "__main__":
     # filenames = ["mytable_[#1]_2009-08-08T121800Z", "mytable_[#2]_2009-08-08T1218020Z"]

@@ -21,19 +21,17 @@ def dim_counterparty(df_counterparty:pd.DataFrame,df_address:pd.DataFrame):
     Output:
     filtered_df(pd.DataFrame)->The final dataframe pointing to the table in the Data warehouse as per the schema.
     """
-    try:
-        if len(df_counterparty.columns.to_list())==0 or len(df_address.columns.to_list())==0:
-            return pd.DataFrame()
-        df_address.fillna({'district': 'N/A'}, inplace=True)
-        df_address.fillna({'address_line_2': 'N/A'}, inplace=True)
-                          
-        merged_df=left_join_df(df_counterparty,df_address,'counterparty_address_id','address_id')
-
-        columns_needed_table1=['counterparty_id','counterparty_legal_name']
-        columns_needed_table2=['address_line_1','address_line_2','district','city','postal_code','country','phone']
-        filtered_df=column_filter(merged_df,['table1_'+field for field in columns_needed_table1]+['table2_'+field for field in columns_needed_table2],
-                                ['counterparty_id','counterparty_legal_name','counterparty_legal_address_line_1','counterparty_legal_address_line_2', 
-                                'counterparty_legal_district','counterparty_legal_city','counterparty_legal_postal_code','counterparty_legal_country','counterparty_legal_phone_number'])
-        return filtered_df
-    except Exception as e:
-        raise e
+    if len(df_counterparty.columns.to_list())==0 or len(df_address.columns.to_list())==0:
+        return pd.DataFrame()
+    df_address.fillna({'district': 'N/A'}, inplace=True)
+    df_address.fillna({'address_line_2': 'N/A'}, inplace=True)
+    df_counterparty.to_csv('./counterparty.csv')
+    df_address.to_csv('./address.csv')
+    merged_df=left_join_df(df_counterparty,df_address,'legal_address_id','address_id')
+    #df_counterparty.merge(df_address)
+    columns_needed_table1=['counterparty_id','counterparty_legal_name']
+    columns_needed_table2=['address_line_1','address_line_2','district','city','postal_code','country','phone']
+    filtered_df=column_filter(merged_df,['table1_'+field for field in columns_needed_table1]+['table2_'+field for field in columns_needed_table2],
+                    ['counterparty_id','counterparty_legal_name','counterparty_legal_address_line_1','counterparty_legal_address_line_2', 
+                            'counterparty_legal_district','counterparty_legal_city','counterparty_legal_postal_code','counterparty_legal_country','counterparty_legal_phone_number'])
+    return filtered_df

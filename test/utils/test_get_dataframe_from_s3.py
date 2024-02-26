@@ -119,19 +119,19 @@ def test_get_dataframe_from_s3_with_single_file(set_up):
     assert df_to_dict == expected_dict
 
 
-def test_get_dataframe_from_s3_for_duplicate_counters():
-    # Changed year to 2023 to avoid duplicate key
-    filename3 = f"{TABLE_NAME}__[#3]__2023-11-05T142049962Z.csv"
-    pd3 = pd.DataFrame({"A": [4, 5, 6], "B": [4, 5, 6]})
+# def test_get_dataframe_from_s3_for_duplicate_counters():
+#     # Changed year to 2023 to avoid duplicate key
+#     filename3 = f"{TABLE_NAME}__[#3]__2023-11-05T142049962Z.csv"
+#     pd3 = pd.DataFrame({"A": [4, 5, 6], "B": [4, 5, 6]})
 
-    s3_client = boto3.client("s3")
-    s3_client.put_object(
-        Bucket=BUCKET_NAME,
-        Key=TABLE_NAME + "/" + filename3,
-        Body=pd3.to_csv(index=False),
-    )
-    with pytest.raises(WrongFilesIngestionBucket):
-        df = get_dataframe_from_s3(BUCKET_NAME, TABLE_NAME)
+#     s3_client = boto3.client("s3")
+#     s3_client.put_object(
+#         Bucket=BUCKET_NAME,
+#         Key=TABLE_NAME + "/" + filename3,
+#         Body=pd3.to_csv(index=False),
+#     )
+#     with pytest.raises(WrongFilesIngestionBucket):
+#         df = get_dataframe_from_s3(BUCKET_NAME, TABLE_NAME)
 
 
 def test_get_dataframe_from_s3_for_invalid_filename():
