@@ -63,18 +63,20 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     'dim_design', and 'dim_location'.
     """
     processed_df_dict={}
-    processed_df_dict['fact_sales_order']=fact_sales_transformer(dataframes['sales_order'], 1) # Second passed arguement to be confirmed
-    processed_df_dict['dim_date']=transform_date_table(dataframes['sales_order'])
-    processed_df_dict['dim_counterparty']=dim_counterparty(dataframes['counterparty'], dataframes['address'])
-    processed_df_dict['dim_staff']=transform_staff_table(dataframes['staff'], dataframes['department'])
-    processed_df_dict['dim_currency']=transform_currency_table(dataframes['currency'])
-    processed_df_dict['dim_design']=transform_design_table(dataframes['design'])
-    processed_df_dict['dim_location']=transform_location_table(dataframes['address'])
-    processed_df_dict['dim_transaction']=dim_transaction(dataframes['transaction'])
-    processed_df_dict['dim_payment_type']=dim_payment_type(dataframes['payment_type'])
-    processed_df_dict['fact_purchase_order']=transform_fact_purchase_order(dataframes['purchase_order'])
-    processed_df_dict['fact_payment']=fact_payment(dataframes['payment'])
-
+    try:
+        processed_df_dict['fact_sales_order']=fact_sales_transformer(dataframes['sales_order'], 1) # Second passed arguement to be confirmed
+        processed_df_dict['dim_date']=transform_date_table(dataframes['sales_order'])
+        processed_df_dict['dim_counterparty']=dim_counterparty(dataframes['counterparty'], dataframes['address'])
+        processed_df_dict['dim_staff']=transform_staff_table(dataframes['staff'], dataframes['department'])
+        processed_df_dict['dim_currency']=transform_currency_table(dataframes['currency'])
+        processed_df_dict['dim_design']=transform_design_table(dataframes['design'])
+        processed_df_dict['dim_location']=transform_location_table(dataframes['address'])
+        processed_df_dict['dim_transaction']=dim_transaction(dataframes['transaction'])
+        processed_df_dict['dim_payment_type']=dim_payment_type(dataframes['payment_type'])
+        processed_df_dict['fact_purchase_order']=transform_fact_purchase_order(dataframes['purchase_order'])
+        processed_df_dict['fact_payment']=fact_payment(dataframes['payment'])
+    except Exception as e:
+        raise RuntimeError
     return processed_df_dict
 
 if __name__=='__main__':

@@ -209,7 +209,13 @@ def tables_reader_from_s3(tables: list, bucketname: str) -> tuple[dict[str, pd.D
             df=get_dataframe_from_s3(bucketname,tablename, counter_start=tb_counters_dates[0])
         dataframes[tablename]=df
         counters_dates[tablename]=tb_counters_dates
-    return dataframes,counters_dates
+    if len(dataframes.keys())==len(counters_dates.keys()):
+        if len(dataframes.keys())==11:
+            return dataframes,counters_dates
+        else:
+            raise RuntimeError('Some tables are missing from the ingestion bucket. Please make sure that they are all present.')
+    else:
+        raise RuntimeError('There has been a problem in retrieving versioning of files in the ingestion bucket.')
 
 if __name__ == "__main__":
     # filenames = ["mytable_[#1]_2009-08-08T121800Z", "mytable_[#2]_2009-08-08T1218020Z"]
