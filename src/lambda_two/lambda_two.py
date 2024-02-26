@@ -70,7 +70,7 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     processed_df_dict['dim_staff']=transform_staff_table(dataframes['staff'], dataframes['department'])
     processed_df_dict['dim_currency']=transform_currency_table(dataframes['currency'])
     processed_df_dict['dim_design']=transform_design_table(dataframes['design'])
-    processed_df_dict['dim_location']=transform_location_table(dataframes['location'])
+    processed_df_dict['dim_location']=transform_location_table(dataframes['address'])
     processed_df_dict['dim_transaction']=dim_transaction(dataframes['transaction'])
     processed_df_dict['dim_payment_type']=dim_payment_type(dataframes['payment_type'])
     processed_df_dict['fact_purchase_order']=transform_fact_purchase_order(dataframes['purchase_order'])
