@@ -97,7 +97,6 @@ def test_returns_correct_column_headers():
     output = tfpo(input)
 
     assert output.columns.tolist() == [
-        "purchase_record_id",
         "purchase_order_id",
         "staff_id",
         "counterparty_id",
