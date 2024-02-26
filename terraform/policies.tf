@@ -126,13 +126,14 @@ resource "aws_iam_role_policy_attachment" "lambda_secret_manager_attachment" {
   role       = aws_iam_role.lambda_one_role.name
   policy_arn = aws_iam_policy.lambda_secrets_policy.arn
 }
-
+# Trigger for lambda_2 function whenever a .json is put in the ingestion bucket - i.e. when lambda_1 has finished running
 resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = aws_s3_bucket.ingestion_bucket.id
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.s3_processor.arn
     events              = ["s3:ObjectCreated:*"]
+    filter_suffix      = ".json"
   }
 
   depends_on = [aws_lambda_permission.allow_s3]
