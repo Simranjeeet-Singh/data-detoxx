@@ -3,6 +3,8 @@ from utils.date_utils import (
     convert_utc_to_sql_timestamp,
 )
 import pandas as pd
+import pyarrow.parquet as pq
+from io import BytesIO
 import logging
 from utils.state_file import read_state_file_from_s3
 
@@ -48,6 +50,17 @@ def list_files_from_s3(bucket_name: str) -> list[str]:
         return []
     return [item["Key"].split("/")[-1] for item in response["Contents"] if item["Key"]!='state_file.json']
 
+
+def list_files_from_s3_folder(bucket_name: str, folder_name: str) -> list[str]:
+    """
+    Args : bucket_name as a `string` \n
+    Returns : list of file names inside the bucket as `list` of `strings`
+    """
+    client = boto3.client("s3")
+    response = client.list_objects_v2(Bucket=bucket_name, Prefix=folder_name)
+    if "Contents" not in response:
+        return []
+    return [item["Key"].split("/")[-1] for item in response["Contents"] if item["Key"]!='state_file.json']
 
 def extract_counter_from_filenames(
     filenames: list[str], target_table_name: str = None
@@ -149,6 +162,40 @@ def get_dataframe_from_s3(
         return concatenated_df
     else:
         raise ValueError("Cannot concat dataframes if column are not identical")
+
+
+def get_parquet_dataframe_from_s3(
+    bucket_name: str,
+    table_name: str,
+    counter_start: int = 0,
+    counter_end: int = float("inf"),
+) -> pd.DataFrame | None:
+
+    client = boto3.client("s3")
+    response = client.list_objects_v2(Bucket=bucket_name, Prefix=table_name)
+    if response["KeyCount"] == 0:
+        return None
+
+    table_s3_keys_all = [item["Key"] for item in response["Contents"]]
+    table_s3_keys_to_read = []
+
+    _, counter_to_filename_mapping = extract_counter_from_filenames(table_s3_keys_all)
+
+    if counter_start == 0 and counter_end == float("inf"):
+        # Read all keys
+        table_s3_keys_to_read = table_s3_keys_all
+
+    else:
+        # Read only keys between counter_start and counter_end
+        for counter in counter_to_filename_mapping.keys():
+            if counter_start <= counter < counter_end:
+                table_s3_keys_to_read.append(counter_to_filename_mapping[counter])
+
+    for s3_key in table_s3_keys_to_read:
+        response = client.get_object(Bucket=bucket_name, Key=s3_key)
+        parquet_file = pq.ParquetFile(BytesIO(response['Body'].read()))
+        parquet_data = parquet_file.read().to_pandas()
+        return parquet_data
 
 
 def check_all_df_columns_are_identical(dataframes: list[pd.DataFrame]) -> bool:
