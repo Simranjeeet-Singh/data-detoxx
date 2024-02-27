@@ -30,7 +30,7 @@ def connect():
             port=secret_dict["Port"],
         )
         client = boto3.client("s3")
-        response = client.list_objects_v2(Bucket='data-detox-processed-bucket', Prefix='dim_date')
+        # response = client.list_objects_v2(Bucket='data-detox-processed-bucket', Prefix='dim_date')
         return conn
     except:
         raise DatabaseError
