@@ -122,3 +122,7 @@ new-lambda-one-requirements: delete-venv create-environment
 new-lambda-two-requirements: delete-venv create-environment
 	$(call execute_in_env, $(PIP) install -r ./src/lambda_two/lambda_primary_dependencies.txt)
 	$(call execute_in_env, $(PIP) freeze > ./src/lambda_two/lambda_requirements.txt)
+
+new-lambda-three-requirements: delete-venv create-environment
+	$(call execute_in_env, $(PIP) install -r ./src/lambda_three/lambda_primary_dependencies.txt)
+	$(call execute_in_env, $(PIP) freeze > ./src/lambda_three/lambda_requirements.txt)

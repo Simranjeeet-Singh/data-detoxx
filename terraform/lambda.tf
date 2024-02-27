@@ -23,7 +23,7 @@ resource "aws_lambda_function" "s3_processor" {
 }
 
 resource "aws_lambda_function" "s3_uploader" {
-  depends_on = [data.archive_file.lambda_three_zip] #, aws_lambda_layer_version.lambda_three_dependencies
+  depends_on = [data.archive_file.lambda_three_zip, aws_lambda_layer_version.lambda_three_dependencies]
   filename = "${path.module}/../tmp/lambda_three.zip"
   function_name = "lambda_handler3"
   role          = aws_iam_role.lambda_three_role.arn

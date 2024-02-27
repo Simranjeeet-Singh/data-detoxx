@@ -1,4 +1,5 @@
 import boto3
+
 import pyarrow.parquet as pq
 from io import BytesIO
 from pg8000.native import Connection
