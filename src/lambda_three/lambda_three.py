@@ -36,25 +36,36 @@ def connect():
     except:
         raise DatabaseError
 
+
 connect()
+
 
 def lambda_handler3(event, context):
     logger = logging.getLogger("MyLogger")
     logger.setLevel(logging.INFO)
-    logger.error('rcd10')
+    logger.error("rcd10")
     raise RuntimeError
 
 
 def read_parquet_from_processed_bucket(bucket_name, folder_name, filename):
-    s3Client = boto3.client('s3')
+    s3Client = boto3.client("s3")
     # objects = s3Client.list_objects_v2(Bucket=bucket_name, Prefix=folder_name)
-    obj = s3Client.get_object(Bucket=bucket_name, Key=filename) # objects['Contents'][-1]['Key']
-    parquet_file = pq.ParquetFile(BytesIO(obj['Body'].read()))
-    df = parquet_file.read().to_pandas()
+    obj = s3Client.get_object(
+        Bucket=bucket_name, Key=filename
+    )  # objects['Contents'][-1]['Key']
+    # parquet_file = pq.ParquetFile(BytesIO(obj['Body'].read()))
+    # df = parquet_file.read().to_pandas()
+    df = pd.read_parquet(BytesIO(obj["Body"].read()))
     print(df)
     return df
 
-read_parquet_from_processed_bucket('data-detox-processed-bucket', 'dim_date', 'dim_date/dim_date__[#66]__2024-02-26T150109902Z.parquet')
+
+if __name__ == "__main__":
+    read_parquet_from_processed_bucket(
+        "data-detox-processed-bucket",
+        "dim_date",
+        "dim_date/dim_date__[#66]__2024-02-26T150109902Z.parquet",
+    )
 
 # INSTEAD OF CREATING THE FUNCTION CAN IMPORT INTO THE ACTUAL LAMBDA_THREE FILE
 # from utils.extract_secrets import get_secret
