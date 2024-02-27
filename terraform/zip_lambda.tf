@@ -94,3 +94,13 @@ data "archive_file" "lambda_two_zip" {
   output_path      = "${path.module}/../tmp/lambda_two.zip"
   source_dir       = "${path.module}/../src/lambda_two"
 }
+
+data "archive_file" "lambda_three_zip" {
+      excludes   = [
+    "__pycache__"
+  ]
+  depends_on = [null_resource.clear_tmp]
+  type             = "zip"
+  output_path      = "${path.module}/../tmp/lambda_three.zip"
+  source_dir       = "${path.module}/../src/lambda_three"
+}

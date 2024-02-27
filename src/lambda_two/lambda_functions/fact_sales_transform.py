@@ -34,7 +34,7 @@ def precision_changer(num : float) -> float:
         integer=99999999
     return float(f'{integer}.{decimal}')
 
-def fact_sales_transformer(df_sales_order : pd.DataFrame, last_serial_key: int) -> pd.DataFrame:
+def fact_sales_transformer(df_sales_order : pd.DataFrame) -> pd.DataFrame:
     '''
     This function processes the sales order data DataFrame by performing the following steps:
     1. Extracts and transforms 'created_at' and 'last_updated' columns into separate 'created_date',

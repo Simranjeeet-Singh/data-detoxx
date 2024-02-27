@@ -2,7 +2,26 @@ import pandas as pd
 from utils.currency_code_to_currency_name import (
     currency_code_to_currency_name as cccn,
 )
+from datetime import datetime
 
+
+def currency_dt_transform(datetime_str : str) -> tuple[str,str]:
+    """
+    Converts datetime to date and time.
+
+    Args:
+        datetime_str (str): A string representing the datetime in the format 'YYYY-MM-DD HH:MM:SS.sss'.
+
+    Returns:
+        tuple[str, str]: A tuple of two strings representing the date and time components.
+    """
+    try:
+        dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f")
+    except ValueError:
+        # If milliseconds are missing, append '.000' to the string
+        datetime_str += '.000'
+        dt = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S.%f")
+    return str(dt.date()), str(dt.time())
 
 def transform_currency_table(currency_df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -35,7 +54,8 @@ def transform_currency_table(currency_df: pd.DataFrame) -> pd.DataFrame:
     - The function `cccn` used for converting currency codes to currency names is assumed to be defined elsewhere.
     """
     currency_df["currency_name"] = currency_df["currency_code"].apply(cccn)
-
-    transformed_df = currency_df[["currency_id", "currency_code", "currency_name"]]
+    updated_cols=currency_df['last_updated'].apply(lambda x: pd.Series(currency_dt_transform(x),index=['last_updated_date', 'last_updated_time']))
+    currency_df=currency_df.join([updated_cols])
+    transformed_df = currency_df[["currency_id", "currency_code", "currency_name",'last_updated_date','last_updated_time']]
 
     return transformed_df
