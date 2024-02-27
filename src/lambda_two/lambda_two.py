@@ -59,7 +59,7 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     """
     old_statefile=read_state_file_from_s3(INGESTION_BUCKET)
     processed_df_dict={}
-    state_file_dict={'fact_sales_order':False, 'dim_date':False, 'dim_staff':False, 'dim_design':False, 'dim_transaction':False, 'fact_purchase_order':False, 'fact_payment':False, 'dim_payment_type':old_statefile['payment_type'], 'dim_currency':old_statefile['currency'], 'dim_counterparty':old_statefile['counterparty'], 'dim_location':old_statefile['location']}
+    state_file_dict={'fact_sales_order':False, 'dim_date':False, 'dim_staff':False, 'dim_design':False, 'dim_transaction':False, 'fact_purchase_order':False, 'fact_payment':False, 'dim_payment_type':old_statefile['payment_type'], 'dim_currency':old_statefile['currency'], 'dim_counterparty':old_statefile['counterparty'], 'dim_location':old_statefile['address']}
     try:
         if 'sales_order' in dataframes:
             processed_df_dict['fact_sales_order']=fact_sales_transformer(dataframes['sales_order'])
