@@ -82,6 +82,3 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
 
 if __name__=='__main__':
     lambda_handler2('test','test')
-
-if __name__ == "__main__":
-    lambda_handler2("test", "test")
