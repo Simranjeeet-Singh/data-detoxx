@@ -161,6 +161,9 @@ cython_debug/
 
 # csv files
 *.csv
+# parquet files
+*.parquet
+*.pq
 # Terraform
 **/.terraform/*
 .terraform.lock.hcl
@@ -171,3 +174,5 @@ tmp
 # Misc.
 .DS_Store
 **/.DS_Store
+
+read.py

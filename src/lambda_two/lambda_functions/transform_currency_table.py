@@ -1,5 +1,5 @@
 import pandas as pd
-from lambda_two.lambda_functions.currency_code_to_currency_name import (
+from utils.currency_code_to_currency_name import (
     currency_code_to_currency_name as cccn,
 )
 

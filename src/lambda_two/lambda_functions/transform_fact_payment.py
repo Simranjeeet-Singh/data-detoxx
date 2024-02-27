@@ -1,5 +1,4 @@
 import pandas as pd
-import math 
 from datetime import datetime
 def fact_payment(df_payment:pd.DataFrame):
     """
@@ -15,7 +14,6 @@ def fact_payment(df_payment:pd.DataFrame):
     try:
         #The unique serial id needs to be fixed to only start the counter where it left off after the updated batch of data is passed on by lambda 2.
         final_payement=pd.DataFrame()
-        final_payement.insert(0,'payment_record_id',range(1,1+len(df_payment)))
         for field in df_payment.columns.to_list():
             if field in ['created_at']:
                 date_time=df_payment['created_at'].apply(lambda x: pd.Series(sales_dt_transform(x)))
