@@ -157,4 +157,8 @@ def test_fact_sales_transformer_transforms_df_correctly():
 
     expected_return_df.to_csv("./expected.csv")
     return_df.to_csv("./actual.csv")
+<<<<<<< HEAD
     assert (return_df == expected_return_df).all().all()
+=======
+    assert (return_df == expected_return_df).all().all()
+>>>>>>> d8c30f048db2c0fa54f38ff1845594cb1acae01a

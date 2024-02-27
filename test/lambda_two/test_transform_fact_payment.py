@@ -1,9 +1,9 @@
-
-from lambda_two.lambda_functions.transform_fact_payment import (sales_dt_transform,fact_payment)
+from lambda_two.lambda_functions.transform_fact_payment import (
+    sales_dt_transform,
+    fact_payment,
+)
 
 import pandas as pd
-
-
 
 
 def test_sales_dt_transform():

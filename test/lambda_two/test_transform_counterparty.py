@@ -1,6 +1,7 @@
-from lambda_two.lambda_functions.transform_counterparty import (dim_counterparty)
+from lambda_two.lambda_functions.transform_counterparty import dim_counterparty
 
 import pandas as pd
+
 
 def test_returns_an_empty_frame_when_passed_an_empty_dataframe():
     counterparty_df=pd.DataFrame()
@@ -28,7 +29,16 @@ def test_returns_the_dim_counterparty_table_when_passed_df_containing_database_c
                          ])
     address_df.columns=['address_id','address_line_1','address_line_2','district','city','postal_code','country','phone','created_at','last_updated']
 
-    result = dim_counterparty(counterparty_df,address_df)
-    columns_list=['counterparty_id','counterparty_legal_name','counterparty_legal_address_line_1','counterparty_legal_address_line_2', 
-                          'counterparty_legal_district','counterparty_legal_city','counterparty_legal_postal_code','counterparty_legal_country','counterparty_legal_phone_number']
-    assert result.columns.to_list()==columns_list
+    result = dim_counterparty(counterparty_df, address_df)
+    columns_list = [
+        "counterparty_id",
+        "counterparty_legal_name",
+        "counterparty_legal_address_line_1",
+        "counterparty_legal_address_line_2",
+        "counterparty_legal_district",
+        "counterparty_legal_city",
+        "counterparty_legal_postal_code",
+        "counterparty_legal_country",
+        "counterparty_legal_phone_number",
+    ]
+    assert result.columns.to_list() == columns_list
