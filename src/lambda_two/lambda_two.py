@@ -41,13 +41,14 @@ def lambda_handler2(event, context):
         logger.error(e)
         raise RuntimeError
 
+
 def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     """
     Process a dictionary of pandas dataframes representing all tables in the original database.
-    
+
     Args:
     - dataframes (Dict[str, pd.DataFrame]): A dictionary where keys represent table names and values are the corresponding pandas dataframes.
-    
+
     Returns:
     - processed_df_dict (Dict[str, pd.DataFrame]): A dictionary containing processed pandas dataframes with keys being the process table names.
     - state_file_dict (Dict[str, bool]): A dictionary containing whether a given table has received updates.
@@ -92,4 +93,3 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
 
 if __name__=='__main__':
     lambda_handler2('test','test')
-
