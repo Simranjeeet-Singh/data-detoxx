@@ -61,11 +61,7 @@ def test_fact_sales_transformer_output_is_df_with_correct_cols():
             },
         ]
     )
-<<<<<<< HEAD
-    return_df = fact_sales_transformer(test_df, 1)
-=======
     return_df = fact_sales_transformer(test_df)
->>>>>>> main
     assert type(return_df) == type(test_df)
     print(list(return_df.columns.values))
     assert list(return_df.columns.values) == [
