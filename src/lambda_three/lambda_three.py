@@ -8,6 +8,7 @@ from pprint import pprint
 from utils.date_utils import convert_datetime_to_utc
 import datetime
 import pandas as pd
+import logging
 
 
 def connect():
@@ -38,7 +39,10 @@ def connect():
 connect()
 
 def lambda_handler3(event, context):
-    pass
+    logger = logging.getLogger("MyLogger")
+    logger.setLevel(logging.INFO)
+    logger.error('rcd10')
+    raise RuntimeError
 
 
 def read_parquet_from_processed_bucket(bucket_name, folder_name, filename):

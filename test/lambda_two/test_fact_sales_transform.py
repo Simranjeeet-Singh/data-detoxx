@@ -61,7 +61,11 @@ def test_fact_sales_transformer_output_is_df_with_correct_cols():
             },
         ]
     )
+<<<<<<< HEAD
     return_df = fact_sales_transformer(test_df, 1)
+=======
+    return_df = fact_sales_transformer(test_df)
+>>>>>>> main
     assert type(return_df) == type(test_df)
     print(list(return_df.columns.values))
     assert list(return_df.columns.values) == [
@@ -153,6 +157,7 @@ def test_fact_sales_transformer_transforms_df_correctly():
         ]
     )
 
+<<<<<<< HEAD
     return_df = fact_sales_transformer(test_df, 1)
 
     expected_return_df.to_csv("./expected.csv")
@@ -236,3 +241,10 @@ def test_fact_sales_transformer_transforms_df_correctly_with_last_serial():
     expected_return_df.to_csv("./expected.csv")
     return_df.to_csv("./actual.csv")
     assert (return_df == expected_return_df).all().all()
+=======
+    return_df = fact_sales_transformer(test_df)
+
+    expected_return_df.to_csv("./expected.csv")
+    return_df.to_csv("./actual.csv")
+    assert (return_df == expected_return_df).all().all()
+>>>>>>> main

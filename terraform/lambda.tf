@@ -22,10 +22,30 @@ resource "aws_lambda_function" "s3_processor" {
   layers = [aws_lambda_layer_version.lambda_two_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]
 }
 
+resource "aws_lambda_function" "s3_uploader" {
+  depends_on = [data.archive_file.lambda_three_zip] #, aws_lambda_layer_version.lambda_three_dependencies
+  filename = "${path.module}/../tmp/lambda_three.zip"
+  function_name = "lambda_handler3"
+  role          = aws_iam_role.lambda_three_role.arn
+  handler       = "lambda_three.lambda_handler3"
+  source_code_hash = data.archive_file.lambda_three_zip.output_base64sha256
+  runtime = "python3.11"
+  timeout = 600
+  # layers = [aws_lambda_layer_version.lambda_three_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]
+}
+
 resource "aws_lambda_permission" "allow_s3" {
   action = "lambda:InvokeFunction"
   function_name = aws_lambda_function.s3_processor.function_name
   principal = "s3.amazonaws.com"
   source_arn = aws_s3_bucket.ingestion_bucket.arn
+  source_account = data.aws_caller_identity.current.account_id
+}
+
+resource "aws_lambda_permission" "allow_s32" {
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.s3_uploader.function_name
+  principal = "s3.amazonaws.com"
+  source_arn = aws_s3_bucket.processed_bucket.arn
   source_account = data.aws_caller_identity.current.account_id
 }

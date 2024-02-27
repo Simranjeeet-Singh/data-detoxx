@@ -21,7 +21,7 @@ def test_correct_column_names_are_present():
     ]
     output = tct(test_currency_df)
 
-    assert output.columns.tolist() == ["currency_id", "currency_code", "currency_name"]
+    assert output.columns.tolist() == ["currency_id", "currency_code", "currency_name", "last_updated_date", "last_updated_time"]
 
 
 def test_return_type_is_pd_dataframe():

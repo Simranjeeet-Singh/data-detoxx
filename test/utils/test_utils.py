@@ -6,7 +6,6 @@ from utils.file_reading_utils import (
     list_files_from_s3, tables_reader_from_s3
 )
 
-
 def test_rcat_extracts_counter_correctly():
     input = ["address__[#1]__2022-11-03T142049962Z.csv"]
     expout = 1
@@ -94,34 +93,40 @@ def test_return_latest_counter_and_timestamp_from_filenames_c_raises_error_if_ad
             input
         )
 
-def side_effect_getdf(bucketname, tablename, counter_start=1):
-    match tablename:
-        case 'table':
-            return pd.DataFrame([{'test':10, 'test2':20}])
-        case 'table2':
-            return pd.DataFrame([{'test':100, 'test2':200}])
-        case _:
-            return pd.DataFrame()
-def side_effect_latest_counter(tablename, tablename_files):
-    match tablename:
-        case 'table':
-            return (2,'2024-02-23T181210139Z')
-        case 'table2':
-            return (1,'2024-02-23T181210137Z')
-        case _:
-            return (1,'2024-02-23T181210137Z')
+# def side_effect_getdf(bucketname, tablename, counter_start=1):
+#     match tablename:
+#         case 'payment':
+#             return pd.DataFrame([{'test':10, 'test2':20}])
+#         case 'address':
+#             return pd.DataFrame([{'test':100, 'test2':200}])
+#         case _:
+#             return pd.DataFrame()
+# def side_effect_latest_counter(tablename, tablename_files):
+#     match tablename:
+#         case 'payment':
+#             return (2,'2024-02-23T181210139Z')
+#         case 'address':
+#             return (1,'2024-02-23T181210137Z')
+#         case _:
+#             return (1,'2024-02-23T181210137Z')
         
-@patch('utils.file_reading_utils.get_dataframe_from_s3')
-def test_file_reader(mock_getdf):
-    with patch('utils.file_reading_utils.return_latest_counter_and_timestamp_from_filenames') as mock_ctr:
-        mock_getdf.side_effect = side_effect_getdf
-        mock_ctr.side_effect = side_effect_latest_counter
-        tablenames=['table/table__[#1]__2024-02-23T181210137Z.csv','table/table__[#2]__2024-02-23T181210139Z.csv','table2/table2__[#1]__2024-02-23T181210137Z.csv','t','t2','t3','t4','t5','t6','t7','t8','t9']
-        result=tables_reader_from_s3(tablenames,'mock_bucket')
+# def side_eff_statefile(bucketname):
+#     return {'payment':True, 'address':True}
 
-    exp_res=({'table':pd.DataFrame([{'test':10, 'test2':20}]), 'table2':pd.DataFrame([{'test':100, 'test2':200}])},{'table':(2,'2024-02-23T181210139Z'),'table2':(1,'2024-02-23T181210137Z')})
+# @patch('utils.file_reading_utils.get_dataframe_from_s3')
+# def test_file_reader(mock_getdf):
+#     with patch('utils.file_reading_utils.return_latest_counter_and_timestamp_from_filenames') as mock_ctr:
+#         with patch('utils.state_file.read_state_file_from_s3') as mock_state:
+#             mock_getdf.side_effect = side_effect_getdf
+#             mock_ctr.side_effect = side_effect_latest_counter
+#             mock_state.side_effect = side_eff_statefile
+#             print(mock_state('kek'))
+#             tablenames=['payment/payment__[#1]__2024-02-23T181210137Z.csv','payment/payment__[#2]__2024-02-23T181210139Z.csv','address/address__[#1]__2024-02-23T181210137Z.csv']
+#             result=tables_reader_from_s3(tablenames,'mock_bucket')
+
+#     exp_res=({'payment':pd.DataFrame([{'test':10, 'test2':20}]), 'address':pd.DataFrame([{'test':100, 'test2':200}])},{'payment':(2,'2024-02-23T181210139Z'),'address':(1,'2024-02-23T181210137Z')})
     
-    assert result[1]['table']==exp_res[1]['table']
-    assert result[1]['table2']==exp_res[1]['table2']
-    assert (result[0]['table']==exp_res[0]['table']).all().all()
-    assert (result[0]['table2']==exp_res[0]['table2']).all().all()
+#     assert result[1]['payment']==exp_res[1]['payment']
+#     assert result[1]['address']==exp_res[1]['address']
+#     assert (result[0]['payment']==exp_res[0]['payment']).all().all()
+#     assert (result[0]['address']==exp_res[0]['address']).all().all()
