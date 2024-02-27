@@ -4,11 +4,7 @@ import pandas as pd
 from utils.file_reading_utils import list_files_from_s3, get_dataframe_from_s3, return_latest_counter_and_timestamp_from_filenames, tables_reader_from_s3
 from utils.date_utils import convert_sql_timestamp_to_utc
 from pathlib import Path
-<<<<<<< HEAD
 from utils.state_file import write_state_file, read_state_file_from_s3
-=======
-from utils.state_file import write_state_file
->>>>>>> d8c30f048db2c0fa54f38ff1845594cb1acae01a
 
 # Transformer functions
 from lambda_functions.fact_sales_transform import fact_sales_transformer
@@ -64,11 +60,7 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
     """
     old_statefile=read_state_file_from_s3(INGESTION_BUCKET)
     processed_df_dict={}
-<<<<<<< HEAD
     state_file_dict={'fact_sales_order':False, 'dim_date':False, 'dim_staff':False, 'dim_design':False, 'dim_transaction':False, 'fact_purchase_order':False, 'fact_payment':False, 'dim_payment_type':old_statefile['payment_type'], 'dim_currency':old_statefile['currency'], 'dim_counterparty':old_statefile['counterparty'], 'dim_location':old_statefile['address']}
-=======
-    state_file_dict={'fact_sales_order':False, 'dim_date':False, 'dim_staff':False, 'dim_design':False, 'dim_transaction':False, 'fact_purchase_order':False, 'fact_payment':False, 'dim_payment_type':True, 'dim_currency':True, 'dim_counterparty':True, 'dim_location':True}
->>>>>>> d8c30f048db2c0fa54f38ff1845594cb1acae01a
     try:
         if 'sales_order' in dataframes:
             processed_df_dict['fact_sales_order']=fact_sales_transformer(dataframes['sales_order'])
