@@ -176,3 +176,5 @@ tmp
 **/.DS_Store
 
 /read.py
+
+/delete_all_rows.py
