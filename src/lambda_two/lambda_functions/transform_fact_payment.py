@@ -1,6 +1,5 @@
 import pandas as pd
 from datetime import datetime
-import pytest
 
 
 def fact_payment(df_payment: pd.DataFrame):
