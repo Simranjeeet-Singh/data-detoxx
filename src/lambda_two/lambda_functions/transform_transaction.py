@@ -25,6 +25,8 @@ def dim_transaction(df_transaction: pd.DataFrame):
                 final_transaction[field] = df_transaction[field].copy()
         final_transaction.fillna({"sales_order_id": 0}, inplace=True)
         final_transaction.fillna({"purchase_order_id": 0}, inplace=True)
+        final_transaction['sales_order_id']=final_transaction['sales_order_id'].astype("int64")
+        final_transaction['purchase_order_id']=final_transaction['purchase_order_id'].astype("int64")
         return final_transaction
     except Exception as e:
         raise e

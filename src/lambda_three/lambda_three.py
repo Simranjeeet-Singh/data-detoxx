@@ -37,9 +37,6 @@ def connect():
         raise DatabaseError
 
 
-connect()
-
-
 def lambda_handler3(event, context):
     """
     It initializes a logger, connects to the final PostgreSQL Warehouse,
@@ -56,6 +53,7 @@ def lambda_handler3(event, context):
     try:
         connection = connect()
         updated_dfs_dict = read_updated_tables_from_s3(BUCKET_NAME)
+        print(updated_dfs_dict)
         insert_dataframes_into_warehouse(connection, updated_dfs_dict)
 
 
