@@ -7,6 +7,7 @@ import pandas as pd
 import logging
 from utils.state_file import read_state_file_from_s3
 from utils.file_reading_utils import return_latest_counter_and_timestamp_from_filenames, get_parquet_dataframe_from_s3, list_files_from_s3_folder
+from lambda_functions.insert_dataframe_into_warehouse import insert_dataframes_into_warehouse
 
 BUCKET_NAME = "data-detox-processed-bucket"
 
@@ -55,7 +56,8 @@ def lambda_handler3(event, context):
     try:
         connection = connect()
         updated_dfs_dict = read_updated_tables_from_s3(BUCKET_NAME)
-        # sql_query(connection, updated_dfs_dict)
+        insert_dataframes_into_warehouse(connection, updated_dfs_dict)
+
 
     except Exception as e:
         logger.error(e)

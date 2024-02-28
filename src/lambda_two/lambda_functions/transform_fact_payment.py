@@ -25,7 +25,7 @@ def fact_payment(df_payment:pd.DataFrame):
                 final_payement['last_updated_date']=date_time[0]
                 final_payement['last_updated_time']=date_time[1]
             elif field in ['payment_id','transaction_id','counterparty_id','payment_amount','currency_id','payment_type_id',
-                           'paid','payment_date','company_ac_number','counterparty_ac_number']:
+                           'paid','payment_date']:
                 final_payement[field]=df_payment[field].copy()
         return final_payement
             
