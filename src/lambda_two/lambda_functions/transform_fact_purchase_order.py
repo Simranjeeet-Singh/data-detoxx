@@ -38,8 +38,5 @@ def transform_fact_purchase_order(purchase_order_df: pd.DataFrame) -> pd.DataFra
 
     transformed_df = transformed_df.join([created_cols, updated_cols])
 
-    transformed_df.insert(0, 'purchase_record_id',
-                          range(1, 1+len(transformed_df)))
-    transformed_df.index = transformed_df.loc[:, 'purchase_record_id'].values
 
     return transformed_df

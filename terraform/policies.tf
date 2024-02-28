@@ -76,6 +76,10 @@ resource "aws_cloudwatch_log_group" "cw_log_group" {
 resource "aws_cloudwatch_log_group" "cw_log_group_2" {
   name = "/aws/lambda/${aws_lambda_function.s3_processor.function_name}"
 }
+# Lambda 3
+resource "aws_cloudwatch_log_group" "cw_log_group_3" {
+  name = "/aws/lambda/${aws_lambda_function.s3_uploader.function_name}"
+}
 # Create Cloudwatch logging policy
 resource "aws_iam_policy" "function_logging_policy" {
   name = "function-logging-policy"
@@ -106,6 +110,12 @@ resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment_2"
   role       = aws_iam_role.lambda_two_role.id
   policy_arn = aws_iam_policy.function_logging_policy.arn
 }
+#Lambda 3
+resource "aws_iam_role_policy_attachment" "function_logging_policy_attachment_3" {
+  depends_on = [aws_lambda_function.s3_uploader]
+  role       = aws_iam_role.lambda_three_role.id
+  policy_arn = aws_iam_policy.function_logging_policy.arn
+}
 
 resource "aws_iam_policy" "lambda_secrets_policy" {
   name        = "lambda_secrets_policy"
@@ -126,14 +136,27 @@ resource "aws_iam_role_policy_attachment" "lambda_secret_manager_attachment" {
   role       = aws_iam_role.lambda_one_role.name
   policy_arn = aws_iam_policy.lambda_secrets_policy.arn
 }
-
+# Trigger for lambda_2 function whenever a .json is put in the ingestion bucket - i.e. when lambda_1 has finished running
 resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = aws_s3_bucket.ingestion_bucket.id
 
   lambda_function {
     lambda_function_arn = aws_lambda_function.s3_processor.arn
     events              = ["s3:ObjectCreated:*"]
+    filter_suffix      = ".json"
   }
 
   depends_on = [aws_lambda_permission.allow_s3]
+}
+# Trigger for lambda_3 function whenever a .json is put in the processed bucket - i.e. when lambda_2 has finished running
+resource "aws_s3_bucket_notification" "bucket_notification3" {
+  bucket = aws_s3_bucket.processed_bucket.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.s3_uploader.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_suffix      = ".json"
+  }
+
+  depends_on = [aws_lambda_permission.allow_s32]
 }

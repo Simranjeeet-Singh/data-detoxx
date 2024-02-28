@@ -3,7 +3,10 @@ from utils.date_utils import (
     convert_utc_to_sql_timestamp,
 )
 import pandas as pd
-
+import pyarrow.parquet as pq
+from io import BytesIO
+import logging
+from utils.state_file import read_state_file_from_s3
 
 class WrongFilesIngestionBucket(Exception):
     pass
@@ -45,8 +48,19 @@ def list_files_from_s3(bucket_name: str) -> list[str]:
     response = client.list_objects(Bucket=bucket_name)
     if "Contents" not in response:
         return []
-    return [item["Key"].split("/")[-1] for item in response["Contents"]]
+    return [item["Key"].split("/")[-1] for item in response["Contents"] if item["Key"]!='state_file.json']
 
+
+def list_files_from_s3_folder(bucket_name: str, folder_name: str) -> list[str]:
+    """
+    Args : bucket_name as a `string` \n
+    Returns : list of file names inside the bucket as `list` of `strings`
+    """
+    client = boto3.client("s3")
+    response = client.list_objects_v2(Bucket=bucket_name, Prefix=folder_name)
+    if "Contents" not in response:
+        return []
+    return [item["Key"].split("/")[-1] for item in response["Contents"] if item["Key"]!='state_file.json']
 
 def extract_counter_from_filenames(
     filenames: list[str], target_table_name: str = None
@@ -79,10 +93,14 @@ def extract_counter_from_filenames(
                 #     print(counter, table_name)
                 #     raise ValueError("Duplicate counter values exist in filenames")
                 # else:
-                    counter_timestamp_mapping[counter] = datetime
-                    counter_filename_mapping[counter] = filename
-        except ValueError:
-            raise WrongFilesIngestionBucket
+                counter_timestamp_mapping[counter] = datetime
+                counter_filename_mapping[counter] = filename
+        except ValueError as e:
+            # logger.error(e)
+            if filename == "state_file.json":
+                pass
+            else:
+                raise
     return counter_timestamp_mapping, counter_filename_mapping
 
 
@@ -143,7 +161,41 @@ def get_dataframe_from_s3(
         concatenated_df = pd.concat(dfs)
         return concatenated_df
     else:
-        raise WrongFilesIngestionBucket
+        raise ValueError("Cannot concat dataframes if column are not identical")
+
+
+def get_parquet_dataframe_from_s3(
+    bucket_name: str,
+    table_name: str,
+    counter_start: int = 0,
+    counter_end: int = float("inf"),
+) -> pd.DataFrame | None:
+
+    client = boto3.client("s3")
+    response = client.list_objects_v2(Bucket=bucket_name, Prefix=table_name)
+    if response["KeyCount"] == 0:
+        return None
+
+    table_s3_keys_all = [item["Key"] for item in response["Contents"]]
+    table_s3_keys_to_read = []
+
+    _, counter_to_filename_mapping = extract_counter_from_filenames(table_s3_keys_all)
+
+    if counter_start == 0 and counter_end == float("inf"):
+        # Read all keys
+        table_s3_keys_to_read = table_s3_keys_all
+
+    else:
+        # Read only keys between counter_start and counter_end
+        for counter in counter_to_filename_mapping.keys():
+            if counter_start <= counter < counter_end:
+                table_s3_keys_to_read.append(counter_to_filename_mapping[counter])
+
+    for s3_key in table_s3_keys_to_read:
+        response = client.get_object(Bucket=bucket_name, Key=s3_key)
+        parquet_file = pq.ParquetFile(BytesIO(response['Body'].read()))
+        parquet_data = parquet_file.read().to_pandas()
+        return parquet_data
 
 
 def check_all_df_columns_are_identical(dataframes: list[pd.DataFrame]) -> bool:
@@ -165,6 +217,7 @@ def check_all_df_columns_are_identical(dataframes: list[pd.DataFrame]) -> bool:
             return False
     return True
 
+
 def path_to_parquet(table_name: str, counter: int, last_updated: str) -> str:
     """
     Generates a file path for storing a Parquet file.
@@ -182,7 +235,10 @@ def path_to_parquet(table_name: str, counter: int, last_updated: str) -> str:
     """
     return f"{table_name}/{table_name}__[#{counter}]__{last_updated}.parquet"
 
-def tables_reader_from_s3(tables: list, bucketname: str) -> tuple[dict[str, pd.DataFrame], dict[str, tuple[int, str]]]:
+
+def tables_reader_from_s3(
+    tables: list, bucketname: str
+) -> tuple[dict[str, pd.DataFrame], dict[str, tuple[int, str]]]:
     """
     Reads tables data from S3 bucket, taking the last written file for most tables, and returns dataframes along with their latest counter and timestamp.
     For the non-updating tables, it always retrieves all the data in the s3 bucket.
@@ -194,29 +250,53 @@ def tables_reader_from_s3(tables: list, bucketname: str) -> tuple[dict[str, pd.D
     Returns:
         Tuple[Dict[str, pd.DataFrame], Dict[str, Tuple[int, str]]]: A tuple containing two dictionaries:
             - First dictionary maps table names to their corresponding dataframes.
-            - Second dictionary maps table names to a tuple containing the latest counter and latest timestamp. 
+            - Second dictionary maps table names to a tuple containing the latest counter and latest timestamp.
     """
-    EXPECTED_NO_TABLES=11
-    tablenames=list(set([element.split('__')[0].split('/')[0] for element in tables]))
-    dataframes,counters_dates={},{}
-    non_updating_tables=['department', 'counterparty', 'currency', 'payment_type', 'address']
+    tablenames = list(set([element.split("__")[0].split("/")[0] for element in tables]))
+    dataframes, counters_dates = {}, {}
+    dependent_tables = [
+        "department",
+        "counterparty",
+        "currency",
+        "payment_type",
+        "address",
+    ] # The .csv files for these tables are always all read and stored in a single .parquet file
     for tablename in tablenames:
-        if tablename in non_updating_tables:
-            df=get_dataframe_from_s3(bucketname,tablename)
-            tb_counters_dates=(1,'2022-11-03 14:20:51.563') #hardcoded random date
+        if tablename in dependent_tables:
+            df = get_dataframe_from_s3(bucketname, tablename)   # get all .csv files from ingestion bucket
+            tablename_files = [
+                    element
+                    for element in tables
+                    if element.split("__")[0].split("/")[0] == tablename
+                ]
+            tb_counters_dates = return_latest_counter_and_timestamp_from_filenames(
+                    tablename, tablename_files
+                )
         else:
-            tablename_files=[element for element in tables if element.split('__')[0].split('/')[0]==tablename]
-            tb_counters_dates=return_latest_counter_and_timestamp_from_filenames(tablename,tablename_files)
-            df=get_dataframe_from_s3(bucketname,tablename, counter_start=tb_counters_dates[0])
-        dataframes[tablename]=df
-        counters_dates[tablename]=tb_counters_dates
-    if len(dataframes.keys())==len(counters_dates.keys()):
-        if len(dataframes.keys())==EXPECTED_NO_TABLES:
-            return dataframes,counters_dates
-        else:
-            raise RuntimeError('Some tables are missing from the ingestion bucket. Please make sure that they are all present.')
+            dict = read_state_file_from_s3(bucketname)
+            if dict[tablename]:
+                tablename_files = [
+                    element
+                    for element in tables
+                    if element.split("__")[0].split("/")[0] == tablename
+                ]
+                tb_counters_dates = return_latest_counter_and_timestamp_from_filenames(
+                    tablename, tablename_files
+                )
+                df = get_dataframe_from_s3(
+                    bucketname, tablename, counter_start=tb_counters_dates[0]
+                )
+            else:
+                continue
+        dataframes[tablename] = df
+        counters_dates[tablename] = tb_counters_dates
+    if len(dataframes.keys()) == len(counters_dates.keys()):
+        return dataframes, counters_dates
     else:
-        raise RuntimeError('There has been a problem in retrieving versioning of files in the ingestion bucket.')
+        raise RuntimeError(
+            "There has been a problem in retrieving versioning of files in the ingestion bucket."
+        )
+
 
 if __name__ == "__main__":
     # filenames = ["mytable_[#1]_2009-08-08T121800Z", "mytable_[#2]_2009-08-08T1218020Z"]

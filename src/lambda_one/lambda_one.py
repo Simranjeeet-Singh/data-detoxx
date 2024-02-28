@@ -5,7 +5,7 @@ from pg8000.native import Connection
 from pg8000 import DatabaseError
 from lambda_functions.extraction_lambda import save_db_to_csv
 from utils.extract_secrets import get_secret
-from utils.file_reading_utils import WrongFilesIngestionBucket
+from utils.file_reading_utils import WrongFilesIngestionBucket, return_latest_counter_and_timestamp_from_filenames
 
 BUCKET_NAME = "data-detox-ingestion-bucket"
 
@@ -57,6 +57,7 @@ def lambda_handler(event, context):
             except FileNotFoundError:
                 tab_name = path.split("__")[0]
                 logger.info(f"No rows added or modified to table {tab_name}")
+        s3.upload_file(Filename='/tmp/state_file.json', Bucket=BUCKET_NAME, Key='state_file.json')
     except DatabaseError as DBE:
         print(DBE)
         logger.error("Error in accessing the database.")
@@ -77,10 +78,10 @@ def lambda_handler(event, context):
         logger.error(
             "A file with the wrong name format was put in the ingestion bucket. Please remove it to continue execution."
         )
-        raise RuntimeError
+        raise
     except Exception as e:
         logger.error(e)
-        raise RuntimeError
+        raise
 
 
 if __name__ == "__main__":
