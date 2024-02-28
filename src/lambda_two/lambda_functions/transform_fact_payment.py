@@ -41,7 +41,6 @@ def fact_payment(df_payment: pd.DataFrame):
                 sales_dt_transform(x), index=["last_updated_date", "last_updated_time"]
             )
         )
-        print(df_payment)
         transformed_df = df_payment[
             [
                 "payment_id",
