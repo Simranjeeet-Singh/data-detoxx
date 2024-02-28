@@ -31,7 +31,7 @@ resource "aws_lambda_function" "s3_uploader" {
   source_code_hash = data.archive_file.lambda_three_zip.output_base64sha256
   runtime = "python3.11"
   timeout = 600
-  # layers = [aws_lambda_layer_version.lambda_three_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]
+  layers = [aws_lambda_layer_version.lambda_three_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]
 }
 
 resource "aws_lambda_permission" "allow_s3" {
