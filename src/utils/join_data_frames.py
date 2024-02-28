@@ -23,8 +23,8 @@ def left_join_df(
 
 
     """
-    df_table_1_cp=df_table_1.copy()
-    df_table_2_cp=df_table_2.copy()
+    df_table_1_cp = df_table_1.copy()
+    df_table_2_cp = df_table_2.copy()
     try:
         if foreign_key_2 == "":
             foreign_key_2 = foreign_key_1
