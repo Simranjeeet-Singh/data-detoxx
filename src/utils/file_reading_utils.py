@@ -270,6 +270,7 @@ def tables_reader_from_s3(
         "currency",
         "payment_type",
         "address",
+        'sales_order'
     ]  # The .csv files for these tables are always all read and stored in a single .parquet file
     for tablename in tablenames:
         if tablename in dependent_tables:
