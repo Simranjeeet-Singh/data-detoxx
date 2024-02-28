@@ -5,6 +5,7 @@ resource "aws_lambda_function" "s3_file_reader" {
   role          = aws_iam_role.lambda_one_role.arn
   handler       = "lambda_one.lambda_handler"
   source_code_hash = data.archive_file.lambda_one_zip.output_base64sha256
+  memory_size = 1024
   runtime = "python3.11"
   timeout = 600
   layers = [aws_lambda_layer_version.lambda_one_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]
@@ -17,6 +18,7 @@ resource "aws_lambda_function" "s3_processor" {
   role          = aws_iam_role.lambda_two_role.arn
   handler       = "lambda_two.lambda_handler2"
   source_code_hash = data.archive_file.lambda_two_zip.output_base64sha256
+  memory_size = 1024
   runtime = "python3.11"
   timeout = 600
   layers = [aws_lambda_layer_version.lambda_two_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]
@@ -29,6 +31,7 @@ resource "aws_lambda_function" "s3_uploader" {
   role          = aws_iam_role.lambda_three_role.arn
   handler       = "lambda_three.lambda_handler3"
   source_code_hash = data.archive_file.lambda_three_zip.output_base64sha256
+  memory_size = 1024
   runtime = "python3.11"
   timeout = 600
   layers = [aws_lambda_layer_version.lambda_three_dependencies.arn, aws_lambda_layer_version.lambda_utils.arn, var.aws_pandas_layer_arn]

@@ -16,5 +16,5 @@ def transform_location_table(location_df: pd.DataFrame) -> pd.DataFrame:
     - pd.DataFrame: A transformed DataFrame with renamed columns and a specific subset of columns.
     """
     transformed_df = location_df.rename(
-        columns={'address_id': 'location_id', 'postal_code': 'postcode'})
-    return transformed_df[['location_id', 'address_line_1', 'address_line_2', 'district', 'city', 'postcode', 'country', 'phone']]
+        columns={'address_id': 'location_id'})
+    return transformed_df[['location_id', 'address_line_1', 'address_line_2', 'district', 'city', 'postal_code', 'country', 'phone']]

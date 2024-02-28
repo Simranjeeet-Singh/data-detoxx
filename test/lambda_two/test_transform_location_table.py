@@ -78,7 +78,7 @@ def test_all_correct_columns_are_present():
         "address_line_2",
         "district",
         "city",
-        "postcode",
+        "postal_code",
         "country",
         "phone",
     ]
