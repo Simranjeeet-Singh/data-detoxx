@@ -60,8 +60,11 @@ def lambda_handler3(event, context):
     try:
         connection = connect()
         updated_dfs_dict = read_updated_tables_from_s3(BUCKET_NAME)
-        print(updated_dfs_dict)
-        insert_dataframes_into_warehouse(connection, updated_dfs_dict)
+        # print(updated_dfs_dict)
+        if updated_dfs_dict:
+            insert_dataframes_into_warehouse(connection, updated_dfs_dict)
+        else:
+            print("No updated dfs")
 
     except Exception as e:
         logger.error(e)
@@ -71,6 +74,21 @@ def lambda_handler3(event, context):
 def read_updated_tables_from_s3(bucket_name: str) -> dict[pd.DataFrame]:
     updated_dataframes = {}
     updated_tables_dict = read_state_file_from_s3(bucket_name)
+
+    # FOR DEBUGGING ONLY
+    # updated_tables_dict = {
+    #     "fact_sales_order": False,
+    #     "dim_date": False,
+    #     "dim_staff": False,
+    #     "dim_design": False,
+    #     "dim_transaction": False,
+    #     "fact_purchase_order": False,
+    #     "fact_payment": True,
+    #     "dim_payment_type": True,
+    #     "dim_currency": True,
+    #     "dim_counterparty": True,
+    #     "dim_location": True,
+    # }
 
     for table_name in updated_tables_dict:
         # if table has been updated

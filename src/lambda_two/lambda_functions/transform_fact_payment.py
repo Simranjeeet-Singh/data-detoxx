@@ -1,10 +1,13 @@
 import pandas as pd
 from datetime import datetime
-def fact_payment(df_payment:pd.DataFrame):
+import pytest
+
+
+def fact_payment(df_payment: pd.DataFrame):
     """
     This function performs data tranformation on transaction table in our original database and converts it into
     dim_transaction table as required in our final schema.
-    
+
     Input:
     df_payment (pd.DataFrame)-> The original table in dataframe
 
@@ -12,54 +15,70 @@ def fact_payment(df_payment:pd.DataFrame):
     final_payment (pd.DataFrame)-> The final table in data warehouse schema
     """
     try:
-        final_payement=pd.DataFrame()
-        for field in df_payment.columns.to_list():
-            if field in ['created_at']:
-                date_time=df_payment['created_at'].apply(lambda x: pd.Series(sales_dt_transform(x)))
-                final_payement['created_date']=date_time[0]
-                final_payement['created_time']=date_time[1]
-                
-            elif field in ['last_updated']:
-                date_time=df_payment['created_at'].apply(lambda x: pd.Series(sales_dt_transform(x)))
-                final_payement['last_updated_date']=date_time[0]
-                final_payement['last_updated_time']=date_time[1]
-            elif field in ['payment_id','transaction_id','counterparty_id','payment_amount','currency_id','payment_type_id',
-                           'paid','payment_date']:
-                final_payement[field]=df_payment[field].copy()
-        return final_payement
+        # final_payment=pd.DataFrame()
+        # for field in df_payment.columns.to_list():
+        #     if field in ['created_at']:
+        #         date_time=df_payment['created_at'].apply(lambda x: pd.Series(sales_dt_transform(x)))
+        #         final_payment['created_date']=date_time[0]
+        #         final_payment['created_time']=date_time[1]
 
-    #     created_cols = df_payment['created_at'].apply(lambda x: pd.Series(
-    #         sales_dt_transform(x), index=['created_date', 'created_time']))
-    #     updated_cols = df_payment['last_updated'].apply(lambda x: pd.Series(
-    #         sales_dt_transform(x), index=['last_updated_date', 'last_updated_time']))
+        #     elif field in ['last_updated']:
+        #         date_time=df_payment['created_at'].apply(lambda x: pd.Series(sales_dt_transform(x)))
+        #         final_payment['last_updated_date']=date_time[0]
+        #         final_payment['last_updated_time']=date_time[1]
+        #     elif field in ['payment_id','transaction_id','counterparty_id','payment_amount','currency_id','payment_type_id',
+        #                    'paid','payment_date']:
+        #         final_payment[field]=df_payment[field].copy()
+        # return final_payment
 
-    #     transformed_df = df_payment[['payment_id','transaction_id','counterparty_id','payment_amount','currency_id','payment_type_id', 'paid','payment_date']]
+        created_cols = df_payment["created_at"].apply(
+            lambda x: pd.Series(
+                sales_dt_transform(x), index=["created_date", "created_time"]
+            )
+        )
+        updated_cols = df_payment["last_updated"].apply(
+            lambda x: pd.Series(
+                sales_dt_transform(x), index=["last_updated_date", "last_updated_time"]
+            )
+        )
+        print(df_payment)
+        transformed_df = df_payment[
+            [
+                "payment_id",
+                "transaction_id",
+                "counterparty_id",
+                "payment_amount",
+                "currency_id",
+                "payment_type_id",
+                "paid",
+                "payment_date",
+            ]
+        ]
 
-    #     transformed_df = transformed_df.join([created_cols, updated_cols])
+        transformed_df = transformed_df.join([created_cols, updated_cols])
 
-    #     return transformed_df[[
-    #         "payment_id",
-    #         "created_date",
-    #         "created_time",
-    #         "last_updated_date",
-    #         "last_updated_time",
-    #         "transaction_id",
-    #         "counterparty_id",
-    #         "payment_amount",
-    #         "currency_id",
-    #         "payment_type_id",
-    #         "paid",
-    #         "payment_date",
-    #     ]]
-        
+        return transformed_df[
+            [
+                "payment_id",
+                "created_date",
+                "created_time",
+                "last_updated_date",
+                "last_updated_time",
+                "transaction_id",
+                "counterparty_id",
+                "payment_amount",
+                "currency_id",
+                "payment_type_id",
+                "paid",
+                "payment_date",
+            ]
+        ]
+
     except Exception as e:
         raise e
-    
-                
-    
 
 
-def sales_dt_transform(timestamp_str : str) -> tuple[str,str]:
+def sales_dt_transform(timestamp_str: str) -> tuple[str, str]:
     """
     Converts datetime to date and time.
 
@@ -69,7 +88,7 @@ def sales_dt_transform(timestamp_str : str) -> tuple[str,str]:
     Returns:
         tuple[str, str]: A tuple of two strings representing the date and time components.
     """
-    timestamp=datetime.fromisoformat(timestamp_str)
-    date=timestamp.date()
-    time=timestamp.time()
+    timestamp = datetime.fromisoformat(timestamp_str)
+    date = timestamp.date()
+    time = timestamp.time()
     return str(date), str(time)

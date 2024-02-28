@@ -134,7 +134,7 @@ def process_dataframes(dataframes: dict[pd.DataFrame]) -> dict[pd.DataFrame]:
         )
 
     except Exception as e:
-        raise RuntimeError
+        raise e
     return processed_df_dict, state_file_dict
 
 

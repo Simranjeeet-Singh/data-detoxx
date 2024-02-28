@@ -158,3 +158,7 @@ def test_fact_sales_transformer_transforms_df_correctly():
     expected_return_df.to_csv("./expected.csv")
     return_df.to_csv("./actual.csv")
     assert (return_df == expected_return_df).all().all()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])
