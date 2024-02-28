@@ -3,7 +3,7 @@ from pg8000 import Connection
 
 
 def insert_dataframes_into_warehouse(
-    conn: Connection, tables_data: dict[str, pd.DataFrame]
+    conn: Connection, dataframes_dict: dict[str, pd.DataFrame]
 ) -> None:
     """
     Insert data from DataFrames into the warehouse tables.
@@ -14,18 +14,28 @@ def insert_dataframes_into_warehouse(
     Returns:
         None
     """
-    for table in tables_data:
-        table_columns = tables_data[table].columns.to_list()
-        for index, row in tables_data[table].iterrows():
-            columns_str = ", ".join(table_columns)
-            values_str = ", ".join([f"'{value}'" for value in row.values])
-            # Construct the SQL INSERT statement with ON CONFLICT clause
-            if "fact" in table:
-                sql_query = f"INSERT INTO {table} ({columns_str}) VALUES ({values_str})"
-            else:
-                sql_query = f"INSERT INTO {table} ({columns_str}) VALUES ({values_str}) ON CONFLICT ({table_columns[0]}) DO UPDATE SET "
-                update_str = ", ".join(
-                    [f"{col} = excluded.{col}" for col in table_columns]
-                )
-                sql_query += update_str
+    # Must insert dim tables first to avoid missing foreign keys in fact tables
+    for table_name in dataframes_dict:
+        if "dim" in table_name:
+            table_columns = dataframes_dict[table_name].columns.to_list()
+            for index, row in dataframes_dict[table_name].iterrows():
+                columns_str = ", ".join(table_columns)
+                values_str = ", ".join([f"'{value}'" for value in row.values])
+
+            # table_columns[0] must be primary key
+            sql_query = f"INSERT INTO {table_name} ({columns_str}) VALUES ({values_str}) ON CONFLICT ({table_columns[0]}) DO UPDATE SET "
+            update_str = ", ".join([f"{col} = excluded.{col}" for col in table_columns])
+            sql_query += update_str
+            conn.run(sql_query)
+
+    for table_name in dataframes_dict:
+        if "fact" in table_name:
+            table_columns = dataframes_dict[table_name].columns.to_list()
+            for index, row in dataframes_dict[table_name].iterrows():
+                columns_str = ", ".join(table_columns)
+                values_str = ", ".join([f"'{value}'" for value in row.values])
+
+            sql_query = (
+                f"INSERT INTO {table_name} ({columns_str}) VALUES ({values_str})"
+            )
             conn.run(sql_query)
