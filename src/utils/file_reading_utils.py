@@ -8,6 +8,7 @@ from io import BytesIO
 import logging
 from utils.state_file import read_state_file_from_s3
 
+
 class WrongFilesIngestionBucket(Exception):
     pass
 
@@ -48,7 +49,11 @@ def list_files_from_s3(bucket_name: str) -> list[str]:
     response = client.list_objects(Bucket=bucket_name)
     if "Contents" not in response:
         return []
-    return [item["Key"].split("/")[-1] for item in response["Contents"] if item["Key"]!='state_file.json']
+    return [
+        item["Key"].split("/")[-1]
+        for item in response["Contents"]
+        if item["Key"] != "state_file.json"
+    ]
 
 
 def list_files_from_s3_folder(bucket_name: str, folder_name: str) -> list[str]:
@@ -60,7 +65,12 @@ def list_files_from_s3_folder(bucket_name: str, folder_name: str) -> list[str]:
     response = client.list_objects_v2(Bucket=bucket_name, Prefix=folder_name)
     if "Contents" not in response:
         return []
-    return [item["Key"].split("/")[-1] for item in response["Contents"] if item["Key"]!='state_file.json']
+    return [
+        item["Key"].split("/")[-1]
+        for item in response["Contents"]
+        if item["Key"] != "state_file.json"
+    ]
+
 
 def extract_counter_from_filenames(
     filenames: list[str], target_table_name: str = None
@@ -193,7 +203,7 @@ def get_parquet_dataframe_from_s3(
 
     for s3_key in table_s3_keys_to_read:
         response = client.get_object(Bucket=bucket_name, Key=s3_key)
-        parquet_file = pq.ParquetFile(BytesIO(response['Body'].read()))
+        parquet_file = pq.ParquetFile(BytesIO(response["Body"].read()))
         parquet_data = parquet_file.read().to_pandas()
         return parquet_data
 
@@ -260,18 +270,20 @@ def tables_reader_from_s3(
         "currency",
         "payment_type",
         "address",
-    ] # The .csv files for these tables are always all read and stored in a single .parquet file
+    ]  # The .csv files for these tables are always all read and stored in a single .parquet file
     for tablename in tablenames:
         if tablename in dependent_tables:
-            df = get_dataframe_from_s3(bucketname, tablename)   # get all .csv files from ingestion bucket
+            df = get_dataframe_from_s3(
+                bucketname, tablename
+            )  # get all .csv files from ingestion bucket
             tablename_files = [
-                    element
-                    for element in tables
-                    if element.split("__")[0].split("/")[0] == tablename
-                ]
+                element
+                for element in tables
+                if element.split("__")[0].split("/")[0] == tablename
+            ]
             tb_counters_dates = return_latest_counter_and_timestamp_from_filenames(
-                    tablename, tablename_files
-                )
+                tablename, tablename_files
+            )
         else:
             dict = read_state_file_from_s3(bucketname)
             if dict[tablename]:

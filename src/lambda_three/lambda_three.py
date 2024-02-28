@@ -6,10 +6,17 @@ from utils.extract_secrets import get_secret
 import pandas as pd
 import logging
 from utils.state_file import read_state_file_from_s3
-from utils.file_reading_utils import return_latest_counter_and_timestamp_from_filenames, get_parquet_dataframe_from_s3, list_files_from_s3_folder
-from lambda_functions.insert_dataframe_into_warehouse import insert_dataframes_into_warehouse
+from utils.file_reading_utils import (
+    return_latest_counter_and_timestamp_from_filenames,
+    get_parquet_dataframe_from_s3,
+    list_files_from_s3_folder,
+)
+from lambda_functions.insert_dataframe_into_warehouse import (
+    insert_dataframes_into_warehouse,
+)
 
 BUCKET_NAME = "data-detox-processed-bucket"
+
 
 def connect():
     """
@@ -58,7 +65,6 @@ def lambda_handler3(event, context):
         updated_dfs_dict = read_updated_tables_from_s3(BUCKET_NAME)
         insert_dataframes_into_warehouse(connection, updated_dfs_dict)
 
-
     except Exception as e:
         logger.error(e)
         raise RuntimeError
@@ -74,7 +80,9 @@ def read_updated_tables_from_s3(bucket_name: str) -> dict[pd.DataFrame]:
             # list all the files in specified table's AWS folder
             list_of_filenames = list_files_from_s3_folder(bucket_name, table_name)
             # extract lastest counter from the list of filenames
-            counter, _ = return_latest_counter_and_timestamp_from_filenames(table_name, list_of_filenames)
+            counter, _ = return_latest_counter_and_timestamp_from_filenames(
+                table_name, list_of_filenames
+            )
             # convert latest parquet file to dataframe
             df = get_parquet_dataframe_from_s3(bucket_name, table_name, counter)
             # put each dataframe as key value pair in updated_dataframes

@@ -3,8 +3,10 @@ import pytest
 import pandas as pd
 from utils.file_reading_utils import (
     return_latest_counter_and_timestamp_from_filenames as rcat,
-    list_files_from_s3, tables_reader_from_s3
+    list_files_from_s3,
+    tables_reader_from_s3,
 )
+
 
 def test_rcat_extracts_counter_correctly():
     input = ["address__[#1]__2022-11-03T142049962Z.csv"]
@@ -93,6 +95,7 @@ def test_return_latest_counter_and_timestamp_from_filenames_c_raises_error_if_ad
             input
         )
 
+
 # def side_effect_getdf(bucketname, tablename, counter_start=1):
 #     match tablename:
 #         case 'payment':
@@ -109,7 +112,7 @@ def test_return_latest_counter_and_timestamp_from_filenames_c_raises_error_if_ad
 #             return (1,'2024-02-23T181210137Z')
 #         case _:
 #             return (1,'2024-02-23T181210137Z')
-        
+
 # def side_eff_statefile(bucketname):
 #     return {'payment':True, 'address':True}
 
@@ -125,7 +128,7 @@ def test_return_latest_counter_and_timestamp_from_filenames_c_raises_error_if_ad
 #             result=tables_reader_from_s3(tablenames,'mock_bucket')
 
 #     exp_res=({'payment':pd.DataFrame([{'test':10, 'test2':20}]), 'address':pd.DataFrame([{'test':100, 'test2':200}])},{'payment':(2,'2024-02-23T181210139Z'),'address':(1,'2024-02-23T181210137Z')})
-    
+
 #     assert result[1]['payment']==exp_res[1]['payment']
 #     assert result[1]['address']==exp_res[1]['address']
 #     assert (result[0]['payment']==exp_res[0]['payment']).all().all()
