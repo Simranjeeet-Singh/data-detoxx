@@ -75,21 +75,6 @@ def read_updated_tables_from_s3(bucket_name: str) -> dict[pd.DataFrame]:
     updated_dataframes = {}
     updated_tables_dict = read_state_file_from_s3(bucket_name)
 
-    # FOR DEBUGGING ONLY
-    # updated_tables_dict = {
-    #     "fact_sales_order": False,
-    #     "dim_date": False,
-    #     "dim_staff": False,
-    #     "dim_design": False,
-    #     "dim_transaction": False,
-    #     "fact_purchase_order": False,
-    #     "fact_payment": True,
-    #     "dim_payment_type": True,
-    #     "dim_currency": True,
-    #     "dim_counterparty": True,
-    #     "dim_location": True,
-    # }
-
     for table_name in updated_tables_dict:
         # if table has been updated
         if updated_tables_dict[table_name]:

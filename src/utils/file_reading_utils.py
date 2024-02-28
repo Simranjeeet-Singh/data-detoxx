@@ -142,7 +142,7 @@ def get_dataframe_from_s3(
     """
 
     client = boto3.client("s3")
-    response = client.list_objects_v2(Bucket=bucket_name, Prefix=table_name)
+    response = client.list_objects_v2(Bucket=bucket_name, Prefix=table_name+'/')
     if response["KeyCount"] == 0:
         return None
 
@@ -182,7 +182,7 @@ def get_parquet_dataframe_from_s3(
 ) -> pd.DataFrame | None:
 
     client = boto3.client("s3")
-    response = client.list_objects_v2(Bucket=bucket_name, Prefix=table_name)
+    response = client.list_objects_v2(Bucket=bucket_name, Prefix=table_name+'/')
     if response["KeyCount"] == 0:
         return None
 
