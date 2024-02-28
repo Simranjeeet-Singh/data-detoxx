@@ -1,1 +1,0 @@
-"{\"fact_sales_order\": true, \"dim_date\": true, \"dim_staff\": false, \"dim_design\": false, \"dim_transaction\": true, \"fact_purchase_order\": false, \"fact_payment\": true, \"dim_payment_type\": true, \"dim_currency\": true, \"dim_counterparty\": true, \"dim_location\": true}"
